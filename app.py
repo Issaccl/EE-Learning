@@ -131,6 +131,19 @@ section[data-testid="stSidebar"] [data-baseweb="radio"] [data-baseweb="radio"] ~
     text-align: center; padding: 1rem 0; margin-top: 2rem;
     border-top: 1px solid #e2e8f0; color: #94a3b8; font-size: 0.82rem;
 }
+
+/* ── Cusdis 评论区 ── */
+#cusdis_thread { font-family: 'Inter', system-ui, sans-serif; }
+#cusdis_thread textarea {
+    border: 1px solid #e2e8f0 !important; border-radius: 6px !important;
+    font-size: 0.92rem !important; padding: 10px !important;
+}
+#cusdis_thread button {
+    background: #3b82f6 !important; color: #fff !important; border: none !important;
+    border-radius: 6px !important; padding: 8px 20px !important; font-size: 0.9rem !important;
+    cursor: pointer !important;
+}
+#cusdis_thread button:hover { background: #2563eb !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -144,6 +157,25 @@ def knowledge_section(title: str, items: list[tuple[str, str, str]]):
                         unsafe_allow_html=True)
             if formula:
                 st.markdown(f'<div class="formula-box">{formula}</div>', unsafe_allow_html=True)
+
+
+# ── Cusdis 评论 ──
+CUSDIS_APP_ID = "384d8e94-78a6-46e5-860e-59990619b4e3"  # 注册 https://cusdis.com 后替换
+
+def show_comments(page_id: str, page_title: str):
+    html = f"""
+    <div style="margin-top:2rem; padding-top:1.5rem; border-top:1px solid #e2e8f0;">
+        <div style="font-size:0.88rem; font-weight:600; color:#64748b; text-transform:uppercase;
+                    letter-spacing:0.06em; margin-bottom:12px;">留言讨论</div>
+        <div id="cusdis_thread" data-host="https://cusdis.com"
+             data-app-id="{CUSDIS_APP_ID}"
+             data-page-id="{page_id}"
+             data-page-url="https://ee-learning.streamlit.app"
+             data-page-title="{page_title}"></div>
+        <script async defer src="https://cusdis.com/js/cusdis.es.js"></script>
+    </div>
+    """
+    st.components.v1.html(html, height=400, scrolling=True)
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -480,9 +512,7 @@ if page == "课程知识":
     with tabs[4]:
         knowledge_section("自动控制原理", CONTROL_THEORY)
 
-# ════════════════════════════════════════════════════════════════════
-#  资源链接
-# ════════════════════════════════════════════════════════════════════
+    show_comments("courses", "课程知识")
 
 elif page == "资源链接":
     st.markdown("""
@@ -502,6 +532,8 @@ elif page == "资源链接":
             with cols[i % 2]:
                 st.link_button(f"**{title}**", url, help=desc, use_container_width=True)
                 st.caption(f"{desc} / {tag}")
+
+    show_comments("resources", "资源链接")
 
 # ════════════════════════════════════════════════════════════════════
 #  仿真实验室
@@ -533,6 +565,8 @@ elif page == "仿真实验室":
             "https://www.geogebra.org/classic/tz5x6vga?embed",
             height=550, scrolling=True,
         )
+
+    show_comments("simulation", "仿真实验室")
 
 # ── 页脚 ──
 st.markdown('<div class="footer-line">EE-Learning &middot; 仅供个人学习使用</div>', unsafe_allow_html=True)
