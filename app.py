@@ -8,7 +8,7 @@ st.markdown("""
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 .stApp { font-family: 'Inter', system-ui, sans-serif !important; }
-.block-container { padding-top: 1.5rem !important; padding-bottom: 1rem !important; max-width: 1000px !important; }
+.block-container { padding-top: 2rem !important; padding-bottom: 1rem !important; max-width: 1000px !important; }
 section[data-testid="stMain"] { background: #f8fafc !important; }
 html { font-size: 15.5px; }
 [data-testid="stHeader"] { background: #f8fafc !important; }
@@ -103,24 +103,48 @@ footer { display: none !important; }
 
 
 def _clean_latex(text: str) -> str:
-    """将 LaTeX 公式转为可读纯文本"""
-    import re
-    # 先统一：把 \\ 替换为 \ （处理 raw string 双反斜杠）
-    text = text.replace('\\\\', '\\')
+    """将 LaTeX 公式转为可读纯文本（纯字符串操作，无正则）"""
+    # 统一双反斜杠为单反斜杠
+    while '\\\\' in text:
+        text = text.replace('\\\\', '\\')
     # \frac{a}{b} → (a)/(b)
     while '\\frac{' in text:
-        m = re.search(r'\\frac\{([^}]+)\}\{([^}]+)\}', text)
-        if m:
-            text = text[:m.start()] + f'({m.group(1)})/({m.group(2)})' + text[m.end():]
+        i = text.find('\\frac{')
+        if i < 0: break
+        # 找到第一个 }
+        j = text.find('}', i + 6)
+        if j < 0: break
+        num = text[i+6:j]
+        # 找到第二个 \frac{ 后的 }
+        k = text.find('\\frac{', j+1)
+        # 也可能直接是 }
+        if k < 0 or k > j + 10:
+            # 可能是 }{b} 格式
+            if text[j+1] == '{':
+                m = text.find('}', j+2)
+                if m < 0: break
+                den = text[j+2:m]
+                text = text[:i] + f'({num})/({den})' + text[m+1:]
+            else:
+                break
         else:
-            break
+            # 找 }{b} 模式
+            brace_start = text.find('{', j)
+            if brace_start == j + 1:
+                brace_end = text.find('}', brace_start)
+                if brace_end < 0: break
+                den = text[brace_start+1:brace_end]
+                text = text[:i] + f'({num})/({den})' + text[brace_end+1:]
+            else:
+                break
     # \sqrt{a} → √(a)
     while '\\sqrt{' in text:
-        m = re.search(r'\\sqrt\{([^}]+)\}', text)
-        if m:
-            text = text[:m.start()] + f'√({m.group(1)})' + text[m.end():]
-        else:
-            break
+        i = text.find('\\sqrt{')
+        if i < 0: break
+        j = text.find('}', i + 6)
+        if j < 0: break
+        inner = text[i+6:j]
+        text = text[:i] + f'√({inner})' + text[j+1:]
     # 希腊字母和数学符号
     for s, r in [('\\sum','Σ'),('\\prod','Π'),('\\int','∫'),('\\oint','∮'),
         ('\\infty','∞'),('\\pi','π'),('\\omega','ω'),('\\zeta','ζ'),
@@ -136,7 +160,11 @@ def _clean_latex(text: str) -> str:
         ('\\text{',''),('\\mathrm{',''),('\\mathbf{','')]:
         text = text.replace(s, r)
     # \dot{x} → ·x
-    text = re.sub(r'\\dot\{([^}]+)\}', r'·\1', text)
+    while '\\dot{' in text:
+        i = text.find('\\dot{')
+        j = text.find('}', i + 5)
+        if j < 0: break
+        text = text[:i] + '·' + text[i+5:j] + text[j+1:]
     # 括号清理
     for old, new in [('\\left(','('),('\\right)',')'),('\\left[','['),('\\right]',']'),
                      ('\\{','{'),('\\}','}')]:
@@ -148,10 +176,32 @@ def _clean_latex(text: str) -> str:
     # _{abc} → 下标  ^{abc} → 上标
     sub_map = str.maketrans('0123456789', '₀₁₂₃₄₅₆₇₈₉')
     sup_map = str.maketrans('0123456789+-=()nikj', '⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ⁿⁱᵏʲ')
-    text = re.sub(r'_\{([^}]+)\}', lambda m: m.group(1).translate(sub_map), text)
-    text = re.sub(r'\^\{([^}]+)\}', lambda m: m.group(1).translate(sup_map), text)
-    text = re.sub(r'_([0-9a-zA-Z])', lambda m: m.group(1).translate(sub_map), text)
-    text = re.sub(r'\^([0-9a-zA-Z])', lambda m: m.group(1).translate(sup_map), text)
+    while '_{' in text:
+        i = text.find('_{')
+        j = text.find('}', i + 2)
+        if j < 0: break
+        inner = text[i+2:j]
+        text = text[:i] + inner.translate(sub_map) + text[j+1:]
+    while '^{' in text:
+        i = text.find('^{')
+        j = text.find('}', i + 2)
+        if j < 0: break
+        inner = text[i+2:j]
+        text = text[:i] + inner.translate(sup_map) + text[j+1:]
+    # 单字符 _x 和 ^x
+    result = []
+    i = 0
+    while i < len(text):
+        if text[i] == '_' and i+1 < len(text) and text[i+1].isalnum():
+            result.append(text[i+1].translate(sub_map))
+            i += 2
+        elif text[i] == '^' and i+1 < len(text) and text[i+1].isalnum():
+            result.append(text[i+1].translate(sup_map))
+            i += 2
+        else:
+            result.append(text[i])
+            i += 1
+    text = ''.join(result)
     # 清理残余花括号和 HTML 实体
     text = text.replace('{', '').replace('}', '')
     text = text.replace('&emsp;', '    ').replace('&nbsp;', ' ')
