@@ -105,9 +105,22 @@ footer { display: none !important; }
 def _clean_latex(text: str) -> str:
     """将 LaTeX 公式转为可读纯文本"""
     import re
+    # 先统一：把 \\ 替换为 \ （处理 raw string 双反斜杠）
+    text = text.replace('\\\\', '\\')
     # \frac{a}{b} → (a)/(b)
-    text = re.sub(r'\\frac\{([^}]+)\}\{([^}]+)\}', r'(\1)/(\2)', text)
-    text = re.sub(r'\\sqrt\{([^}]+)\}', r'√(\1)', text)
+    while '\\frac{' in text:
+        m = re.search(r'\\frac\{([^}]+)\}\{([^}]+)\}', text)
+        if m:
+            text = text[:m.start()] + f'({m.group(1)})/({m.group(2)})' + text[m.end():]
+        else:
+            break
+    # \sqrt{a} → √(a)
+    while '\\sqrt{' in text:
+        m = re.search(r'\\sqrt\{([^}]+)\}', text)
+        if m:
+            text = text[:m.start()] + f'√({m.group(1)})' + text[m.end():]
+        else:
+            break
     # 希腊字母和数学符号
     for s, r in [('\\sum','Σ'),('\\prod','Π'),('\\int','∫'),('\\oint','∮'),
         ('\\infty','∞'),('\\pi','π'),('\\omega','ω'),('\\zeta','ζ'),
@@ -119,29 +132,28 @@ def _clean_latex(text: str) -> str:
         ('\\approx','≈'),('\\rightarrow','→'),('\\Rightarrow','⇒'),
         ('\\cdots','⋯'),('\\ldots','…'),('\\mathcal{L}','ℒ'),
         ('\\sin','sin'),('\\cos','cos'),('\\tan','tan'),
-        ('\\log','log'),('\\lim','lim'),('\\lg','lg')]:
+        ('\\log','log'),('\\lim','lim'),('\\lg','lg'),
+        ('\\text{',''),('\\mathrm{',''),('\\mathbf{','')]:
         text = text.replace(s, r)
-    # \text{x} \mathrm{x} \mathbf{x} → x
-    text = re.sub(r'\\(?:text|mathrm|mathbf)\{([^}]+)\}', r'\\1', text)
     # \dot{x} → ·x
-    text = re.sub(r'\\dot\{([^}]+)\}', r'·\\1', text)
-    # 括号
-    text = text.replace('\\left(', '(').replace('\\right)', ')')
-    text = text.replace('\\left[', '[').replace('\\right]', ']')
-    text = text.replace('\\{', '{').replace('\\}', '}')
+    text = re.sub(r'\\dot\{([^}]+)\}', r'·\1', text)
+    # 括号清理
+    for old, new in [('\\left(','('),('\\right)',')'),('\\left[','['),('\\right]',']'),
+                     ('\\{','{'),('\\}','}')]:
+        text = text.replace(old, new)
     # 去掉 $
     text = text.replace('$', '')
-    # 清理反斜杠
+    # 清理所有剩余反斜杠
     text = text.replace('\\', '')
     # _{abc} → 下标  ^{abc} → 上标
     sub_map = str.maketrans('0123456789', '₀₁₂₃₄₅₆₇₈₉')
     sup_map = str.maketrans('0123456789+-=()nikj', '⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ⁿⁱᵏʲ')
     text = re.sub(r'_\{([^}]+)\}', lambda m: m.group(1).translate(sub_map), text)
     text = re.sub(r'\^\{([^}]+)\}', lambda m: m.group(1).translate(sup_map), text)
-    # _x 和 ^x 单字符
     text = re.sub(r'_([0-9a-zA-Z])', lambda m: m.group(1).translate(sub_map), text)
     text = re.sub(r'\^([0-9a-zA-Z])', lambda m: m.group(1).translate(sup_map), text)
-    # 清理 HTML 实体
+    # 清理残余花括号和 HTML 实体
+    text = text.replace('{', '').replace('}', '')
     text = text.replace('&emsp;', '    ').replace('&nbsp;', ' ')
     return text.strip()
 
