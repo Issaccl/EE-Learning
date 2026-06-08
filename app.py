@@ -479,7 +479,7 @@ RESOURCES = {
 
 page = st.sidebar.radio(
     "导航",
-    ["课程知识", "资源链接", "仿真实验室"],
+    ["课程知识", "资源链接", "仿真实验室", "留言讨论"],
     label_visibility="collapsed",
 )
 
@@ -512,8 +512,6 @@ if page == "课程知识":
     with tabs[4]:
         knowledge_section("自动控制原理", CONTROL_THEORY)
 
-    show_comments("courses", "课程知识")
-
 elif page == "资源链接":
     st.markdown("""
     <div class="page-header">
@@ -532,8 +530,6 @@ elif page == "资源链接":
             with cols[i % 2]:
                 st.link_button(f"**{title}**", url, help=desc, use_container_width=True)
                 st.caption(f"{desc} / {tag}")
-
-    show_comments("resources", "资源链接")
 
 # ════════════════════════════════════════════════════════════════════
 #  仿真实验室
@@ -566,7 +562,18 @@ elif page == "仿真实验室":
             height=550, scrolling=True,
         )
 
-    show_comments("simulation", "仿真实验室")
+elif page == "留言讨论":
+    st.markdown("""
+    <div class="page-header">
+        <div class="accent"></div>
+        <div>
+            <h1>留言讨论</h1>
+            <p>有任何问题或建议，欢迎在这里留言交流</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    show_comments("discussion", "留言讨论")
 
 # ── 页脚 ──
 st.markdown('<div class="footer-line">EE-Learning &middot; 仅供个人学习使用</div>', unsafe_allow_html=True)
