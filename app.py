@@ -95,13 +95,6 @@ section[data-testid="stSidebar"] [data-baseweb="radio"] [data-baseweb="radio"] ~
     font-size: 0.95rem !important; line-height: 1.8 !important; color: #475569 !important;
 }
 
-/* ── 公式区 ── */
-.formula-box {
-    background: #f1f5f9; border-left: 3px solid #3b82f6; border-radius: 6px;
-    padding: 14px 18px; margin: 10px 0 4px 0; font-size: 0.93rem;
-    text-align: center; color: #0f172a; line-height: 1.8;
-}
-
 /* ── 子标题 ── */
 .sub-header {
     font-size: 0.88rem; font-weight: 600; color: #64748b;
@@ -144,6 +137,11 @@ section[data-testid="stSidebar"] [data-baseweb="radio"] [data-baseweb="radio"] ~
     cursor: pointer !important;
 }
 #cusdis_thread button:hover { background: #2563eb !important; }
+
+/* ── st.latex 样式优化 ── */
+.stLatex { margin: 0.5rem 0 !important; }
+.stLatex > div { background: #f1f5f9 !important; border-left: 3px solid #3b82f6 !important;
+    border-radius: 6px !important; padding: 10px 16px !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -156,7 +154,9 @@ def knowledge_section(title: str, items: list[tuple[str, str, str]]):
             st.markdown(f'<div style="font-size:0.95rem; line-height:1.8; color:#475569;">{desc}</div>',
                         unsafe_allow_html=True)
             if formula:
-                st.markdown(f'<div class="formula-box">{formula}</div>', unsafe_allow_html=True)
+                # 清洗公式：去掉 $...$，替换 HTML 实体
+                f = formula.replace('$', '').replace('&emsp;', '\\quad').replace('&nbsp;', '\\ ')
+                st.latex(f)
 
 
 # ── Cusdis 评论 ──
