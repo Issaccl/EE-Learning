@@ -1,90 +1,143 @@
 import streamlit as st
 
-st.set_page_config(
-    page_title="电气工程学习平台",
-    page_icon="",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
+st.set_page_config(page_title="EE-Learning", page_icon="", layout="wide", initial_sidebar_state="expanded")
 
+# ── 全量 CSS 注入 ──
 st.markdown("""
 <style>
-    /* ── Reset & Base ── */
-    .block-container { padding-top: 2rem; padding-bottom: 1rem; max-width: 1060px; }
-    html, body, [class*="css"] { font-family: "Inter", "Segoe UI", system-ui, sans-serif !important; }
-    html { font-size: 16px; }
-    h1 { font-size: 1.75rem !important; font-weight: 700 !important; color: #1e293b !important; letter-spacing: -0.02em; }
-    h2 { font-size: 1.2rem !important; font-weight: 600 !important; color: #334155 !important; }
-    h3, h4 { font-size: 1.05rem !important; font-weight: 600 !important; color: #475569 !important; }
-    p, li { font-size: 0.98rem !important; line-height: 1.75 !important; color: #475569 !important; }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-    /* ── Sidebar ── */
-    section[data-testid="stSidebar"] { background: #1e293b; }
-    section[data-testid="stSidebar"] p,
-    section[data-testid="stSidebar"] span,
-    section[data-testid="stSidebar"] label { color: #e2e8f0 !important; }
-    section[data-testid="stSidebar"] .stRadio > div { gap: 2px; }
-    section[data-testid="stSidebar"] [data-baseweb="radio"] span { color: #e2e8f0 !important; font-size: 0.95rem !important; }
-    section[data-testid="stSidebar"] hr { border-color: #334155 !important; }
+/* ── 全局 ── */
+.stApp { font-family: 'Inter', system-ui, sans-serif !important; }
+.block-container { padding-top: 1.5rem !important; padding-bottom: 1rem !important; max-width: 1000px !important; }
+section[data-testid="stMain"] { background: #f8fafc !important; }
+html { font-size: 15.5px; }
+[data-testid="stHeader"] { background: #f8fafc !important; }
+[data-testid="stToolbar"] { display: none !important; }
+#MainMenu { display: none !important; }
+footer { display: none !important; }
 
-    /* ── Expander ── */
-    .stExpander {
-        border: 1px solid #e2e8f0 !important;
-        border-radius: 8px !important;
-        margin-bottom: 4px !important;
-        background: #fff !important;
-    }
-    .stExpander summary { font-size: 1rem !important; font-weight: 500 !important; color: #1e293b !important; padding: 0.6rem 0.8rem !important; }
-    .stExpander:hover { border-color: #94a3b8 !important; }
-    .stExpander div[data-testid="stExpander"] div { font-size: 0.95rem !important; }
+/* ── 侧边栏 ── */
+section[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%) !important;
+    border-right: 1px solid #334155 !important;
+}
+section[data-testid="stSidebar"] [data-testid="stSidebarNav"] > div { margin-bottom: 2px; }
+section[data-testid="stSidebar"] [data-testid="stSidebarNav"] > div > div > label {
+    color: #cbd5e1 !important; font-size: 0.92rem !important; padding: 8px 12px !important;
+    border-radius: 6px !important; transition: all 0.15s;
+}
+section[data-testid="stSidebar"] [data-testid="stSidebarNav"] > div:hover > div > label {
+    background: rgba(255,255,255,0.06) !important; color: #f1f5f9 !important;
+}
+section[data-testid="stSidebar"] [data-baseweb="radio"] [data-baseweb="radio"] ~ span {
+    color: #f1f5f9 !important;
+}
 
-    /* ── Formula ── */
-    .formula-box {
-        background: #f1f5f9;
-        border-left: 3px solid #3b82f6;
-        border-radius: 6px;
-        padding: 12px 16px;
-        margin: 8px 0;
-        font-size: 0.95rem;
-        text-align: center;
-        color: #1e293b;
-        font-weight: 400;
-    }
+/* ── 页面顶栏 ── */
+.page-header {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.6rem 2rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.page-header .accent {
+    width: 4px; height: 48px; background: #3b82f6; border-radius: 2px; flex-shrink: 0;
+}
+.page-header h1 {
+    margin: 0; font-size: 1.55rem; font-weight: 700; color: #0f172a;
+    letter-spacing: -0.02em; line-height: 1.2;
+}
+.page-header p { margin: 0.25rem 0 0 0; font-size: 0.88rem; color: #94a3b8; }
 
-    /* ── Tabs ── */
-    .stTabs [data-baseweb="tab-list"] { gap: 0; border-bottom: 1px solid #e2e8f0; }
-    .stTabs [data-baseweb="tab"] {
-        border-radius: 0; padding: 10px 24px;
-        font-size: 0.95rem; font-weight: 500; color: #64748b;
-        border-bottom: 2px solid transparent;
-    }
-    .stTabs [aria-selected="true"] {
-        color: #1e293b !important; border-bottom: 2px solid #3b82f6 !important; font-weight: 600 !important;
-        background: transparent !important;
-    }
+/* ── Tab 栏 ── */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 0 !important; background: transparent !important; border-bottom: 1px solid #e2e8f0 !important;
+}
+.stTabs [data-baseweb="tab"] {
+    border-radius: 0 !important; padding: 12px 20px !important;
+    font-size: 0.92rem !important; font-weight: 500 !important; color: #64748b !important;
+    background: transparent !important; border: none !important;
+    border-bottom: 2px solid transparent !important; transition: color 0.15s;
+}
+.stTabs [data-baseweb="tab"]:hover { color: #334155 !important; }
+.stTabs [aria-selected="true"] {
+    color: #0f172a !important; border-bottom: 2px solid #3b82f6 !important;
+    font-weight: 600 !important; background: transparent !important;
+}
+.stTabs [data-baseweb="tab-highlight"] { background: #3b82f6 !important; }
+.stTabs [data-baseweb="tab-border"] { background: transparent !important; }
 
-    /* ── Link button (resource cards) ── */
-    .stButton > button {
-        border-radius: 8px !important; border: 1px solid #e2e8f0 !important;
-        background: #fff !important; color: #1e293b !important;
-        font-weight: 500 !important; text-align: left !important;
-        padding: 0.7rem 1rem !important; transition: border-color 0.15s;
-    }
-    .stButton > button:hover { border-color: #3b82f6 !important; background: #f8fafc !important; }
+/* ── 展开器 (知识点) ── */
+.stExpander {
+    border: 1px solid #e2e8f0 !important; border-left: 3px solid #e2e8f0 !important;
+    border-radius: 8px !important; margin-bottom: 6px !important;
+    background: #ffffff !important; box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+.stExpander:hover {
+    border-left-color: #3b82f6 !important;
+    box-shadow: 0 2px 8px rgba(59,130,246,0.08) !important;
+}
+.stExpander summary {
+    font-size: 0.98rem !important; font-weight: 500 !important; color: #1e293b !important;
+    padding: 0.7rem 1rem !important;
+}
+.stExpander summary svg { color: #94a3b8 !important; }
 
-    /* ── Info boxes ── */
-    .stAlert { border-radius: 8px !important; font-size: 0.92rem !important; }
+/* ── 展开器内容 ── */
+.stExpander div[data-testid="stExpander"] { padding-top: 0.5rem !important; }
+.stExpander div[data-testid="stExpander"] p {
+    font-size: 0.95rem !important; line-height: 1.8 !important; color: #475569 !important;
+}
 
-    /* ── Misc ── */
-    hr { border-color: #e2e8f0 !important; }
-    .stCaption, caption { color: #94a3b8 !important; font-size: 0.85rem !important; }
+/* ── 公式区 ── */
+.formula-box {
+    background: #f1f5f9; border-left: 3px solid #3b82f6; border-radius: 6px;
+    padding: 14px 18px; margin: 10px 0 4px 0; font-size: 0.93rem;
+    text-align: center; color: #0f172a; line-height: 1.8;
+}
+
+/* ── 子标题 ── */
+.sub-header {
+    font-size: 0.88rem; font-weight: 600; color: #64748b;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    padding-bottom: 6px; margin-bottom: 12px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+/* ── 按钮 / 资源卡片 ── */
+.stButton > button {
+    border-radius: 8px !important; border: 1px solid #e2e8f0 !important;
+    background: #ffffff !important; color: #1e293b !important;
+    font-weight: 500 !important; text-align: left !important;
+    padding: 0.75rem 1rem !important; box-shadow: 0 1px 2px rgba(0,0,0,0.04) !important;
+    transition: all 0.15s !important;
+}
+.stButton > button:hover {
+    border-color: #3b82f6 !important; background: #f0f7ff !important;
+    box-shadow: 0 2px 8px rgba(59,130,246,0.1) !important;
+}
+
+/* ── Info 提示 ── */
+.stAlert { border-radius: 8px !important; font-size: 0.9rem !important; border-left-width: 3px !important; }
+
+/* ── 页脚 ── */
+.footer-line {
+    text-align: center; padding: 1rem 0; margin-top: 2rem;
+    border-top: 1px solid #e2e8f0; color: #94a3b8; font-size: 0.82rem;
+}
 </style>
 """, unsafe_allow_html=True)
 
 
 def knowledge_section(title: str, items: list[tuple[str, str, str]]):
     """渲染一个知识板块。items = [(标题, 解释, 公式), ...]"""
-    st.markdown(f"**{title}**")
+    st.markdown(f'<div class="sub-header">{title}</div>', unsafe_allow_html=True)
     for name, desc, formula in items:
         with st.expander(name, expanded=False):
             st.markdown(f'<div style="font-size:0.95rem; line-height:1.8; color:#475569;">{desc}</div>',
@@ -392,13 +445,6 @@ RESOURCES = {
 #  侧边栏导航
 # ════════════════════════════════════════════════════════════════════
 
-st.sidebar.markdown("""
-<div style="padding: 1rem 0 1.5rem 0; text-align: center; border-bottom: 1px solid #334155; margin-bottom: 1rem;">
-    <span style="color: #f1f5f9; font-size: 1.2rem; font-weight: 700; letter-spacing: -0.01em;">EE-Learning</span><br>
-    <span style="color: #94a3b8; font-size: 0.82rem;">电气工程学习平台</span>
-</div>
-""", unsafe_allow_html=True)
-
 page = st.sidebar.radio(
     "导航",
     ["课程知识", "资源链接", "仿真实验室"],
@@ -411,12 +457,12 @@ page = st.sidebar.radio(
 
 if page == "课程知识":
     st.markdown("""
-    <div style="background: #1e293b; padding: 1.8rem 2rem;
-                border-radius: 10px; margin-bottom: 1.8rem;">
-        <h1 style="color: #f1f5f9 !important; margin: 0; font-size: 1.6rem; font-weight: 700;">课程知识</h1>
-        <p style="color: #94a3b8; margin: 0.3rem 0 0 0; font-size: 0.92rem;">
-            电气工程核心课程 / 47 个知识点 / 生活化类比 + 关键公式
-        </p>
+    <div class="page-header">
+        <div class="accent"></div>
+        <div>
+            <h1>课程知识</h1>
+            <p>电气工程核心课程 / 47 个知识点 / 生活化类比 + 关键公式</p>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -440,12 +486,12 @@ if page == "课程知识":
 
 elif page == "资源链接":
     st.markdown("""
-    <div style="background: #1e293b; padding: 1.8rem 2rem;
-                border-radius: 10px; margin-bottom: 1.8rem;">
-        <h1 style="color: #f1f5f9 !important; margin: 0; font-size: 1.6rem; font-weight: 700;">资源链接</h1>
-        <p style="color: #94a3b8; margin: 0.3rem 0 0 0; font-size: 0.92rem;">
-            精选视频课程与在线教材 / 点击直达
-        </p>
+    <div class="page-header">
+        <div class="accent"></div>
+        <div>
+            <h1>资源链接</h1>
+            <p>精选视频课程与在线教材 / 点击直达</p>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -463,12 +509,12 @@ elif page == "资源链接":
 
 elif page == "仿真实验室":
     st.markdown("""
-    <div style="background: #1e293b; padding: 1.8rem 2rem;
-                border-radius: 10px; margin-bottom: 1.8rem;">
-        <h1 style="color: #f1f5f9 !important; margin: 0; font-size: 1.6rem; font-weight: 700;">仿真实验室</h1>
-        <p style="color: #94a3b8; margin: 0.3rem 0 0 0; font-size: 0.92rem;">
-            在线交互式仿真 / 电路模拟 + 复数可视化
-        </p>
+    <div class="page-header">
+        <div class="accent"></div>
+        <div>
+            <h1>仿真实验室</h1>
+            <p>在线交互式仿真 / 电路模拟 + 复数可视化</p>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -489,9 +535,4 @@ elif page == "仿真实验室":
         )
 
 # ── 页脚 ──
-st.divider()
-st.markdown(
-    '<p style="text-align:center; color:#94a3b8; font-size:0.85rem;">'
-    'EE-Learning · 仅供个人学习使用</p>',
-    unsafe_allow_html=True,
-)
+st.markdown('<div class="footer-line">EE-Learning &middot; 仅供个人学习使用</div>', unsafe_allow_html=True)
