@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电气工程学习平台</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script>
+        MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+    <style>
+        :root {
+            --bg: #ffffff; --surface: #f8f9fa; --card: #ffffff; --text: #1a1a2e;
+            --text-secondary: #555; --border: #e0e0e0; --primary: #2563eb;
+            --primary-light: #dbeafe; --shadow: 0 2px 8px rgba(0,0,0,0.08);
+            --nav-bg: #1a1a2e; --nav-text: #ffffff; --code-bg: #f1f3f5;
+            --tag-bg: #e8f5e9; --tag-text: #2e7d32;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0f0f23; --surface: #1a1a35; --card: #22223b; --text: #e0e0e0;
+                --text-secondary: #a0a0b0; --border: #333355; --primary: #60a5fa;
+                --primary-light: #1e3a5f; --shadow: 0 2px 8px rgba(0,0,0,0.3);
+                --nav-bg: #16162a; --nav-text: #e0e0e0; --code-bg: #1a1a35;
+                --tag-bg: #1b3a2a; --tag-text: #81c784;
+            }
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Roboto', sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; transition: background 0.3s, color 0.3s; }
+        a { color: var(--primary); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        /* Navbar */
+        .navbar { position: sticky; top: 0; z-index: 100; background: var(--nav-bg); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 12px rgba(0,0,0,0.15); height: 60px; }
+        .navbar .logo { color: var(--nav-text); font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
+        .navbar .logo span { font-size: 1.4rem; }
+        .nav-links { display: flex; gap: 0.5rem; }
+        .nav-links button { background: transparent; color: var(--nav-text); border: none; padding: 0.6rem 1.2rem; border-radius: 8px; cursor: pointer; font-size: 0.95rem; font-family: inherit; transition: background 0.2s; font-weight: 500; }
+        .nav-links button:hover, .nav-links button.active { background: rgba(255,255,255,0.15); }
+
+        /* Layout */
+        .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+        .section { display: none; animation: fadeIn 0.3s ease; }
+        .section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Section headers */
+        .section-title { font-size: 1.6rem; font-weight: 700; margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 3px solid var(--primary); display: inline-block; }
+        .sub-section { margin-bottom: 2.5rem; }
+        .sub-title { font-size: 1.15rem; font-weight: 600; color: var(--primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        .sub-title::before { content: ''; width: 4px; height: 20px; background: var(--primary); border-radius: 2px; }
+
+        /* Knowledge accordion */
+        .knowledge-item { background: var(--card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 0.75rem; box-shadow: var(--shadow); overflow: hidden; transition: box-shadow 0.2s; }
+        .knowledge-item:hover { box-shadow: 0 4px 16px rgba(37,99,235,0.12); }
+        .knowledge-header { padding: 1rem 1.25rem; cursor: pointer; display: flex; align-items: center; justify-content: space-between; user-select: none; font-weight: 500; }
+        .knowledge-header::after { content: '▸'; transition: transform 0.25s; font-size: 1.1rem; color: var(--text-secondary); }
+        .knowledge-item.open .knowledge-header::after { transform: rotate(90deg); }
+        .knowledge-body { max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.3s; }
+        .knowledge-item.open .knowledge-body { max-height: 1200px; padding: 0 1.25rem 1.25rem; }
+        .knowledge-body p { color: var(--text-secondary); font-size: 0.95rem; line-height: 1.8; margin-bottom: 0.8rem; }
+        .knowledge-body .formula { background: var(--code-bg); border-radius: 8px; padding: 0.8rem 1rem; margin-top: 0.5rem; font-size: 1rem; text-align: center; border-left: 3px solid var(--primary); }
+
+        /* Resource cards */
+        .resource-group-title { font-size: 1.1rem; font-weight: 600; color: var(--primary); margin: 1.5rem 0 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        .resource-group-title .icon { font-size: 1.3rem; }
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; box-shadow: var(--shadow); transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; display: flex; flex-direction: column; }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(37,99,235,0.15); }
+        .card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text); }
+        .card p { font-size: 0.88rem; color: var(--text-secondary); flex: 1; line-height: 1.6; }
+        .card .tag { display: inline-block; background: var(--tag-bg); color: var(--tag-text); font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 20px; margin-top: 0.8rem; align-self: flex-start; }
+
+        /* Tabs */
+        .tab-container { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); }
+        .tab-header { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); }
+        .tab-btn { flex: 1; padding: 0.9rem 1rem; border: none; background: transparent; cursor: pointer; font-family: inherit; font-size: 0.95rem; font-weight: 500; color: var(--text-secondary); transition: all 0.2s; border-bottom: 3px solid transparent; }
+        .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); background: var(--card); }
+        .tab-btn:hover { color: var(--primary); }
+        .tab-panel { display: none; padding: 1.5rem; }
+        .tab-panel.active { display: block; }
+        .tab-panel p { color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.95rem; }
+        .tab-panel iframe { width: 100%; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+
+        /* Back to top */
+        .back-to-top { position: fixed; bottom: 2rem; right: 2rem; width: 48px; height: 48px; border-radius: 50%; background: var(--primary); color: #fff; border: none; cursor: pointer; font-size: 1.4rem; display: none; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(37,99,235,0.35); transition: transform 0.2s, opacity 0.3s; z-index: 99; }
+        .back-to-top:hover { transform: scale(1.1); }
+        .back-to-top.visible { display: flex; }
+
+        /* Footer */
+        .footer { text-align: center; padding: 2rem; color: var(--text-secondary); font-size: 0.85rem; border-top: 1px solid var(--border); margin-top: 3rem; }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .navbar { padding: 0 1rem; flex-direction: column; height: auto; padding-top: 0.7rem; padding-bottom: 0.7rem; gap: 0.5rem; }
+            .nav-links { width: 100%; justify-content: center; flex-wrap: wrap; }
+            .nav-links button { padding: 0.5rem 0.8rem; font-size: 0.85rem; }
+            .container { padding: 1.2rem 1rem; }
+            .section-title { font-size: 1.3rem; }
+            .card-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="logo"><span>⚡</span> 电气工程学习平台</div>
+    <div class="nav-links">
+        <button class="active" onclick="switchTab('courses')">📚 课程知识</button>
+        <button onclick="switchTab('resources')">🔗 资源链接</button>
+        <button onclick="switchTab('simulation')">🔬 仿真实验室</button>
+    </div>
+</nav>
+
+<div class="container">
+
+    <!-- ==================== 课程知识 ==================== -->
+    <div id="courses" class="section active">
+        <div class="section-title">课程知识</div>
+
+        <!-- ===== 电路理论 ===== -->
+        <div class="sub-section">
+            <div class="sub-title">电路理论</div>
+
+            <!-- 1. 基尔霍夫定律 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">1. 基尔霍夫定律 (KCL / KVL)</div>
+                <div class="knowledge-body">
+                    <p>想象你站在一个十字路口，四条路上的人同时进出。如果进来了10个人，出去了也必须是10个人，路口不会凭空多出人也不会消失人——这就是<strong>基尔霍夫电流定律 (KCL)</strong> 的直觉。KCL的本质是电荷守恒：在任何时刻，流入一个节点的电流之和等于流出的电流之和。这个"节点"可以是一个简单的导线连接点，也可以是包围整个电路的广义节点（闭合面）。</p>
+                    <p><strong>基尔霍夫电压定律 (KVL)</strong> 则说：沿着电路中的任何一条闭合回路走一圈，电压的升降总和为零。这就像你绕操场跑一圈，海拔的上升和下降总和为零，最终回到同一高度。KVL的本质是能量守恒——电荷绕回路一周，电场力做的总功为零。在实际应用中，我们通常约定：沿电流方向经过电阻时电压降为正（+IR），经过电源时从负到正为电压升（+V<sub>s</sub>）。</p>
+                    <p>KCL和KVL是整个电路理论的公理体系，所有后续的分析方法——支路电流法、网孔法、节点法——都建立在这两个定律之上。无论电路多么复杂，只要能列出独立的KCL和KVL方程，就一定能求解。</p>
+                    <div class="formula">KCL（节点）: $\displaystyle\sum_{k=1}^{n} i_k = 0 \quad$（流入为正，流出为负）<br>KVL（回路）: $\displaystyle\sum_{k=1}^{n} v_k = 0 \quad$（电压升为正，电压降为负）</div>
+                </div>
+            </div>
+
+            <!-- 2. 电阻串并联与等效变换 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">2. 电阻串并联与等效变换</div>
+                <div class="knowledge-body">
+                    <p>电阻串联就像几个人手拉手排成一列过独木桥——桥的总长度就是各人长度之和，通行难度（电阻）也是各段之和。并联则像多条平行的桥同时供你选择，桥越多走起来越轻松，等效电阻反而比最小的单条桥还小。串联电路中电流处处相同，各电阻按阻值比例分担总电压（分压原理）；并联电路中各支路电压相同，各电阻按阻值反比分配总电流（分流原理）。</p>
+                    <p>实际电路中常常出现既有串联又有并联的<strong>混联电路</strong>，需要从内向外逐步化简。化简的思路是：先找纯并联或纯串联的局部，求出等效电阻，再将其视为一个新电阻参与外层运算，层层剥洋葱直到整个电路化为一个等效电阻。掌握等效化简是分析复杂电路的第一步，也是理解"等效"这一工程思想的起点——我们不关心内部结构，只关心对外端口的伏安特性是否相同。</p>
+                    <p>除了电阻，等效变换的思想还延伸到电压源与电流源的互换（戴维南/诺顿等效）、星形-三角形（Y-Δ）变换等，是电路分析中最核心的工具之一。</p>
+                    <div class="formula">串联: $R_{eq} = R_1 + R_2 + \cdots + R_n \quad$（分压: $V_k = V_{总}\cdot\dfrac{R_k}{R_{eq}}$）<br>并联: $\dfrac{1}{R_{eq}} = \dfrac{1}{R_1} + \dfrac{1}{R_2} + \cdots + \dfrac{1}{R_n} \quad$（分流: $I_k = I_{总}\cdot\dfrac{R_{eq}}{R_k}$）<br>两电阻并联特例: $R_{eq} = \dfrac{R_1 R_2}{R_1 + R_2}$</div>
+                </div>
+            </div>
+
+            <!-- 3. 支路电流法、网孔法与节点法 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">3. 支路电流法、网孔法与节点法</div>
+                <div class="knowledge-body">
+                    <p>面对一个复杂电路，最原始的方法是<strong>支路电流法</strong>：把每条支路的电流都设为未知数，然后对每个节点列KCL方程、对每个独立回路列KVL方程。这就像解方程组——未知数多，方程也多，一定能解但计算量大。假设电路有 $b$ 条支路、$n$ 个节点，则需要 $b$ 个方程，其中 $n-1$ 个来自KCL，$b-(n-1)$ 个来自KVL。</p>
+                    <p><strong>网孔电流法</strong>是KVL的系统化应用：假设每个网孔（最小回路）有一个虚拟的"网孔电流"沿顺时针方向流动，每条支路的实际电流等于相邻网孔电流的代数和。未知数从 $b$ 个降为网孔个数 $m=b-(n-1)$，方程数大幅减少。这就像给每条路分配一个"巡逻员"，两人共管的路段只需减去对方的巡逻量。</p>
+                    <p><strong>节点电压法</strong>则是KCL的系统化应用：选定一个参考节点（接地），其余每个节点的电压为未知数，对每个独立节点列KCL方程。当电路支路多但节点少时，节点法效率远高于网孔法。这是SPICE等电路仿真软件的核心算法基础——软件自动识别节点、建立导纳矩阵，然后求解线性方程组。</p>
+                    <div class="formula">网孔法（电阻矩阵形式）: $\begin{bmatrix} R_{11} & R_{12} & \cdots \\ R_{21} & R_{22} & \cdots \\ \vdots & & \ddots \end{bmatrix} \begin{bmatrix} i_{m1} \\ i_{m2} \\ \vdots \end{bmatrix} = \begin{bmatrix} \sum V_{s1} \\ \sum V_{s2} \\ \vdots \end{bmatrix}$<br>节点法（导纳矩阵形式）: $\mathbf{Y}_n \mathbf{V}_n = \mathbf{I}_s$，其中 $Y_{kk}=\sum$连接节点$k$的导纳，$Y_{kj}=-$节点$k,j$间的互导纳</div>
+                </div>
+            </div>
+
+            <!-- 4. 戴维南定理与诺顿定理 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">4. 戴维南定理与诺顿定理</div>
+                <div class="knowledge-body">
+                    <p>想象你面前有一台被黑箱封住的复杂电路，你不需要知道里面是什么——只需要测量两个端口的<strong>开路电压</strong> $V_{oc}$ 和<strong>等效电阻</strong> $R_{th}$，就能用一个电压源串联一个电阻完全替代它。这就是<strong>戴维南定理</strong>的精髓：任何线性有源二端网络，对外部电路而言，等效于一个电压源 $V_{th}=V_{oc}$ 串联一个内阻 $R_{th}$。</p>
+                    <p>对偶地，<strong>诺顿定理</strong>说同一个黑箱也可以等效为一个电流源 $I_N = V_{oc}/R_{th}$ 并联同一个电阻 $R_{th}$。两者之间可以通过电源互换互相转化。求 $R_{th}$ 的方法：将网络内所有独立源置零（电压源短路、电流源开路），从端口看进去的等效电阻即为 $R_{th}$。</p>
+                    <p>戴维南/诺顿等效在工程中极为实用：分析负载变化对电路的影响时，只需做一次等效，之后改变负载电阻就能立刻得到新的电压电流，无需反复求解整个电路。这也是阻抗匹配、最大功率传输等重要概念的基础——当负载电阻等于 $R_{th}$ 时，负载获得最大功率。</p>
+                    <div class="formula">戴维南等效: $V_{th} = V_{oc}$（开路电压），$R_{th} = \dfrac{V_{oc}}{I_{sc}}$（开路电压/短路电流）<br>最大功率传输: $P_{max} = \dfrac{V_{th}^2}{4R_{th}}$，当 $R_L = R_{th}$ 时取得</div>
+                </div>
+            </div>
+
+            <!-- 5. 正弦稳态与相量法 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">5. 正弦稳态与相量法</div>
+                <div class="knowledge-body">
+                    <p>交流电的电压和电流像钟摆一样随时间做正弦振荡。如果电路中只有电阻、电容、电感且激励是正弦波，经过暂态后系统进入"稳态"，所有电压电流都以相同频率正弦变化。此时直接用三角函数运算非常繁琐（想想两个正弦函数相乘展开要写多少项），我们引入<strong>相量法</strong>——把正弦量映射到复平面上的一个旋转向量，用复数的代数运算代替微积分运算，就像用对数表把乘法变成加法一样巧妙。</p>
+                    <p>相量的模代表正弦量的幅值（或有效值），角度代表初相位，频率 $\omega$ 则隐含在约定中不再显式书写——同一电路中所有量的频率相同，可以"约掉"。在此框架下，电容的伏安关系从微分方程 $i=C\dfrac{dv}{dt}$ 变成简洁的代数关系 $\dot{I}=j\omega C\dot{V}$，电感则从 $v=L\dfrac{di}{dt}$ 变成 $\dot{V}=j\omega L\dot{I}$。</p>
+                    <p>由此引入<strong>阻抗</strong>的概念：电阻的阻抗 $Z_R=R$，电容的阻抗 $Z_C=\dfrac{1}{j\omega C}$，电感的阻抗 $Z_L=j\omega L$。有了阻抗，交流电路的分析就完全转化为"复数版的直流电路"——KCL、KVL、串并联、分压分流公式全部照搬，只需把实数换成复数即可。</p>
+                    <div class="formula">时域→相量域: $v(t)=V_m\cos(\omega t+\phi) \;\longleftrightarrow\; \dot{V}=V_m e^{j\phi}=V_m\angle\phi$<br>阻抗: $Z_R=R,\quad Z_C=\dfrac{1}{j\omega C}=\dfrac{-j}{\omega C},\quad Z_L=j\omega L$<br>广义欧姆定律: $\dot{V}=Z\cdot\dot{I}$（复数域）</div>
+                </div>
+            </div>
+
+            <!-- 6. 一阶 RC/RL 电路时域分析 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">6. 一阶 RC / RL 电路时域分析</div>
+                <div class="knowledge-body">
+                    <p>给手机充电时，电池电量不是瞬间充满而是逐渐上升——RC电路的充电过程完全类似。电容上的电压像水桶里的水位，电阻决定了水流速度，时间常数 $\tau = RC$ 就是"充到63.2%需要多久"的度量。具体来说，充电到约 $63.2\%$ 需要一个 $\tau$，到 $86.5\%$ 需要 $2\tau$，到 $95\%$ 需要 $3\tau$，到 $99.3\%$ 需要 $5\tau$——工程上通常认为 $5\tau$ 后过渡过程基本结束。</p>
+                    <p>RL电路中电感阻碍电流变化，就像一个沉重的飞轮——你给它通电，电流不会立刻跳变，而是从零开始逐渐增大，同样遵循指数规律。RL电路的时间常数为 $\tau = L/R$，电感值越大或电阻越小，"惯性"越大，电流变化越慢。</p>
+                    <p>掌握<strong>"三要素法"</strong>就能快速写出一阶电路的全响应：找到初始值 $x(0^+)$、稳态值 $x(\infty)$ 和时间常数 $\tau$，直接套公式 $x(t) = x(\infty) + [x(0^+) - x(\infty)]e^{-t/\tau}$。初始值通过"换路定则"（电容电压不能突变、电感电流不能突变）确定，稳态值把电容开路、电感短路后用直流电路方法求解。三要素法免去了列写和求解微分方程的步骤，是考试和工程估算中的利器。</p>
+                    <div class="formula">全响应三要素: $x(t) = x(\infty) + [x(0^+) - x(\infty)]\,e^{-t/\tau}$<br>$\tau_{RC}=RC,\quad \tau_{RL}=\dfrac{L}{R}$<br>换路定则: $v_C(0^+) = v_C(0^-),\quad i_L(0^+) = i_L(0^-)$</div>
+                </div>
+            </div>
+
+            <!-- 7. 二阶 RLC 电路 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">7. 二阶 RLC 电路</div>
+                <div class="knowledge-body">
+                    <p>当电路中同时包含电容和电感时，系统的动态特性由二阶微分方程描述。这就像一个弹簧-质量-阻尼器系统：电容的储能（$\frac{1}{2}Cv^2$）相当于弹簧的弹性势能，电感的储能（$\frac{1}{2}Li^2$）相当于质量块的动能，电阻的耗能则相当于阻尼摩擦。能量在电容和电感之间来回交换，电阻不断消耗，系统的响应取决于三者的"配比"。</p>
+                    <p>根据阻尼系数 $\alpha$ 和固有频率 $\omega_0$ 的关系，RLC电路有三种响应模式：<strong>过阻尼</strong>（$\alpha>\omega_0$）：两个不等的负实根，响应缓慢衰减不振荡，像在蜂蜜中运动的弹簧；<strong>欠阻尼</strong>（$\alpha<\omega_0$）：一对共轭复根，响应为衰减振荡，像被轻轻拨动后逐渐静止的音叉；<strong>临界阻尼</strong>（$\alpha=\omega_0$）：两个相等的负实根，响应最快回到平衡且不振荡，是"恰到好处"的阻尼状态。</p>
+                    <p>串联RLC的 $\alpha=\dfrac{R}{2L}$，并联RLC的 $\alpha=\dfrac{1}{2RC}$，固有频率均为 $\omega_0=\dfrac{1}{\sqrt{LC}}$。理解二阶电路的响应模式是后续学习滤波器设计、振荡器、控制系统稳定性的关键基础。</p>
+                    <div class="formula">串联RLC: $\alpha=\dfrac{R}{2L},\;\omega_0=\dfrac{1}{\sqrt{LC}}$<br>过阻尼 ($\alpha>\omega_0$): $v(t)=A_1 e^{s_1 t}+A_2 e^{s_2 t}$<br>欠阻尼 ($\alpha<\omega_0$): $v(t)=Ke^{-\alpha t}\cos(\omega_d t+\theta),\;\omega_d=\sqrt{\omega_0^2-\alpha^2}$<br>临界阻尼 ($\alpha=\omega_0$): $v(t)=(A_1+A_2 t)e^{-\alpha t}$</div>
+                </div>
+            </div>
+
+            <!-- 8. 正弦稳态功率分析 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">8. 正弦稳态功率分析</div>
+                <div class="knowledge-body">
+                    <p>在直流电路中，功率就是 $P=VI$，简单直接。但在交流电路中，电压和电流都是随时间变化的正弦波，它们之间还可能存在相位差，使得"瞬时功率"忽正忽负——正的时候电路在吸收能量，负的时候电路在释放能量。我们需要关注的是<strong>平均功率</strong>（也叫有功功率），即一个周期内净吸收的能量除以周期。</p>
+                    <p>类比：你推秋千时，有时推的方向和秋千运动方向一致（做正功），有时相反（做负功）。有功功率就像每个周期内你"真正有效"地推动秋千的功率。此外还有<strong>无功功率</strong> $Q$，代表能量在电源和储能元件之间来回"搬运"但不被消耗的速率，就像推秋千时你来回摆动但没有真正让秋千"更高"的那部分力。视在功率 $S=VI$ 是电压和电流有效值的乘积，功率因数 $\cos\varphi=P/S$ 衡量了"有多少视在功率转化为了有功功率"。</p>
+                    <p>工业用电中，功率因数过低意味着大量的无功电流在输电线上空跑，造成线路损耗。因此工厂常并联电容器进行<strong>功率因数校正</strong>——用电容的容性无功抵消电动机的感性无功，使总功率因数趋近于1。这是电力系统中最常见的节能措施之一。</p>
+                    <div class="formula">有功功率: $P = VI\cos\varphi = I^2 R$（单位：W）<br>无功功率: $Q = VI\sin\varphi$（单位：var）<br>视在功率: $S = VI = \sqrt{P^2+Q^2}$（单位：VA）<br>功率因数: $\cos\varphi = \dfrac{P}{S}$</div>
+                </div>
+            </div>
+
+            <!-- 9. 互感与变压器 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">9. 互感与变压器</div>
+                <div class="knowledge-body">
+                    <p>两个靠近的线圈，当其中一个线圈的电流变化时，变化的磁场会穿过另一个线圈，在其中感应出电压——这就是<strong>互感</strong>现象。互感 $M$ 衡量两个线圈之间的磁耦合程度，$M = k\sqrt{L_1 L_2}$，其中耦合系数 $k$（$0 \leq k \leq 1$）反映磁通链的共享程度。$k=1$ 意味着完美耦合（所有磁通都共享），$k=0$ 则完全没有磁耦合。</p>
+                    <p><strong>理想变压器</strong>是互感的极限情况：$k=1$、线圈无电阻、磁芯无损耗。它的核心关系极其简洁——电压比等于匝数比 $\dfrac{v_1}{v_2}=\dfrac{N_1}{N_2}$，电流比等于匝数反比 $\dfrac{i_1}{i_2}=\dfrac{N_2}{N_1}$，阻抗变换 $Z_{in}=\left(\dfrac{N_1}{N_2}\right)^2 Z_L$。变压器是电力系统的核心设备——发电厂发出的电经升压变压器提高电压（降低输电电流和线路损耗），到达用户端再经降压变压器降至安全电压。</p>
+                    <p>在电路分析中，互感线圈需要用"同名端"标记来确定互感电压的极性。含互感的电路通常使用<strong>去耦等效</strong>（T型或π型等效电路）来消除互感项，转化为无互感的普通电路进行分析。</p>
+                    <div class="formula">互感电压: $v_2 = M\dfrac{di_1}{dt}$（同名端决定正负号）<br>耦合系数: $k = \dfrac{M}{\sqrt{L_1 L_2}}, \quad 0 \leq k \leq 1$<br>理想变压器: $\dfrac{V_1}{V_2}=\dfrac{N_1}{N_2},\quad \dfrac{I_1}{I_2}=\dfrac{N_2}{N_1},\quad Z_{in}=\left(\dfrac{N_1}{N_2}\right)^2 Z_L$</div>
+                </div>
+            </div>
+
+            <!-- 10. 频率响应与谐振 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">10. 频率响应与谐振</div>
+                <div class="knowledge-body">
+                    <p>收音机选台就是一个频率选择的过程：空中有无数个频率的电磁波，但你只想要87.5MHz那个——收音机内部的<strong>谐振电路</strong>充当了"频率过滤器"。当激励频率等于电路的固有频率时，电路发生<strong>谐振</strong>，阻抗（或导纳）达到极值，响应幅值最大（串联谐振）或最小（并联谐振）。</p>
+                    <p>串联RLC谐振时，感抗和容抗恰好抵消（$j\omega L = \dfrac{1}{j\omega C}$），总阻抗等于纯电阻 $R$，电流达到最大值 $I_{max}=V/R$。此时电容和电感上的电压幅值可以远大于电源电压——这就是<strong>电压谐振</strong>，品质因数 $Q=\dfrac{\omega_0 L}{R}=\dfrac{1}{\omega_0 CR}$ 衡量了谐振的"尖锐程度"。$Q$ 值越高，谐振曲线越窄，频率选择性越好。</p>
+                    <p><strong>频率响应</strong>是分析电路在不同频率激励下表现的系统方法。绘制输出与输入的幅值比（增益）随频率变化的曲线，就是<strong>幅频特性</strong>（Bode图的幅频部分）。根据频率响应，电路可分为低通、高通、带通、带通阻等类型，这是信号处理和通信系统设计的基础。</p>
+                    <div class="formula">串联谐振条件: $\omega_0 L = \dfrac{1}{\omega_0 C} \;\Rightarrow\; \omega_0=\dfrac{1}{\sqrt{LC}},\quad f_0=\dfrac{1}{2\pi\sqrt{LC}}$<br>品质因数: $Q=\dfrac{\omega_0 L}{R}=\dfrac{1}{\omega_0 CR}=\dfrac{1}{R}\sqrt{\dfrac{L}{C}}$<br>带宽: $BW=\dfrac{f_0}{Q}$，$Q$ 越大带宽越窄，选择性越好</div>
+                </div>
+            </div>
+
+            <!-- 11. 三相电路基础 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">11. 三相电路基础</div>
+                <div class="knowledge-body">
+                    <p>家里的单相电像一条水流，而工业用电常用三相电，就像三股相差120°的水流同时推动一台涡轮机，使得总功率恒定不变、运转更加平稳。三相电源产生三个幅值相同、相位互差120°的正弦电压，分别为A相、B相、C相。对称三相系统的三相电压之和恒为零，三相电流之和也为零——这意味着三相系统不需要中线即可传输能量。</p>
+                    <p>三相负载有两种基本连接方式：<strong>星形 (Y) 连接</strong>和<strong>三角形 (Δ) 连接</strong>。Y接时线电压等于相电压的$\sqrt{3}$倍，Δ接时线电流等于相电流的$\sqrt{3}$倍。生活中常见的"380V三相电"指的是线电压，而每相对地的相电压为220V，正好供家用电器使用。</p>
+                    <p>三相系统最核心的优势在于：<strong>对称三相负载的总瞬时功率为常数</strong>（等于平均功率），没有脉动。单相电机的瞬时功率以两倍频率脉动，会产生振动和噪声；三相电机转矩恒定，运行更安静高效。此外，三相输电只需三根导线（Y接时加一根中线）即可传输同等功率，比三个独立单相系统节省约25%的导线材料。这也是为什么全球电力系统几乎全部采用三相制。</p>
+                    <div class="formula">Y接: $V_L = \sqrt{3}\,V_P,\quad I_L = I_P$<br>Δ接: $V_L = V_P,\quad I_L = \sqrt{3}\,I_P$<br>三相总功率: $P = \sqrt{3}\,V_L\,I_L\,\cos\varphi$<br>对称三相: $v_A+v_B+v_C = 0$（恒成立）</div>
+                </div>
+            </div>
+
+            <!-- 12. 非正弦周期电路与傅里叶分析 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">12. 非正弦周期电路与傅里叶分析</div>
+                <div class="knowledge-body">
+                    <p>实际工程中，激励源很少是纯粹的正弦波——开关电源输出含有纹波，数字信号是方波，电机驱动产生PWM波。分析这类非正弦周期信号的方法是<strong>傅里叶级数</strong>：任何满足狄利克雷条件的周期函数都可以展开为直流分量加上无穷多个不同频率的正弦和余弦分量之和。</p>
+                    <p>类比：一束白光通过棱镜分解为彩虹的各种颜色，傅里叶级数就是信号处理领域的"棱镜"。方波可以看作无穷多个奇次谐波正弦波的叠加 $f(t)=\dfrac{4}{\pi}\sum_{n=1,3,5,...}\dfrac{1}{n}\sin(n\omega_0 t)$；三角波则包含所有奇次谐波但衰减更快（$\dfrac{1}{n^2}$）。</p>
+                    <p>分析非正弦周期电路的步骤：<strong>谐波分析法</strong>——①将激励源做傅里叶展开；②对每个频率分量分别用相量法求解电路响应（注意电容和电感的阻抗随频率变化）；③利用叠加定理将各次谐波的响应在时域叠加。最后还要注意：非正弦周期量的有效值 $V_{rms}=\sqrt{V_0^2+\sum_{n=1}^{\infty}V_{n,rms}^2}$，功率也需要对各次谐波分别计算再求和。</p>
+                    <div class="formula">傅里叶级数: $f(t)=\dfrac{a_0}{2}+\sum_{n=1}^{\infty}[a_n\cos(n\omega_0 t)+b_n\sin(n\omega_0 t)]$<br>方波展开: $f(t)=\dfrac{4}{\pi}\left(\sin\omega_0 t+\dfrac{1}{3}\sin 3\omega_0 t+\dfrac{1}{5}\sin 5\omega_0 t+\cdots\right)$<br>有效值: $V_{rms}=\sqrt{V_0^2+\sum_{n=1}^{\infty}\left(\dfrac{V_{nm}}{\sqrt{2}}\right)^2}$</div>
+                </div>
+            </div>
+
+            <!-- 13. 拉普拉斯变换与电路的s域分析 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">13. 拉普拉斯变换与电路的 s 域分析</div>
+                <div class="knowledge-body">
+                    <p>时域中分析电路需要解微分方程，而拉普拉斯变换就像一把"翻译钥匙"，将微分方程翻译成代数方程——微分变成乘以 $s$，积分变成除以 $s$。这和傅里叶变换的思路类似，但拉普拉斯变换引入了复频率 $s=\sigma+j\omega$，可以处理不收敛的信号（如阶跃信号、指数增长信号），适用范围更广。</p>
+                    <p>在s域中，电路元件的伏安关系变得极其对称：电阻 $V(s)=R\cdot I(s)$，电感 $V(s)=sL\cdot I(s)-Li(0^-)$，电容 $V(s)=\dfrac{1}{sC}\cdot I(s)+\dfrac{v(0^-)}{s}$。初始条件被自动包含在等效电路中，无需像时域那样单独处理——这大大简化了含初始储能的电路分析。</p>
+                    <p>s域分析的最大优势是引入了<strong>网络函数</strong>（传递函数）$H(s)=\dfrac{Y(s)}{X(s)}$，它完全描述了电路的输入-输出关系。通过分析 $H(s)$ 的极点和零点，可以判断系统的稳定性（极点全部在左半平面则稳定）、瞬态响应特性（极点位置决定衰减速度和振荡频率）和频率响应（令 $s=j\omega$ 即得频域响应）。这是从电路分析过渡到信号与系统、自动控制理论的桥梁。</p>
+                    <div class="formula">基本变换: $\mathcal{L}\{f'(t)\}=sF(s)-f(0^-),\quad \mathcal{L}\{f''(t)\}=s^2F(s)-sf(0^-)-f'(0^-)$<br>s域阻抗: $Z_R=R,\quad Z_L=sL,\quad Z_C=\dfrac{1}{sC}$<br>网络函数: $H(s)=\dfrac{Y(s)}{X(s)}=K\dfrac{(s-z_1)(s-z_2)\cdots}{(s-p_1)(s-p_2)\cdots}$</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 工程数学 ===== -->
+        <div class="sub-section">
+            <div class="sub-title">工程数学</div>
+
+            <!-- 1. 复数与相量运算 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">1. 复数与相量运算</div>
+                <div class="knowledge-body">
+                    <p>复数是电气工程师的"万能钥匙"。一个复数 $z = a + jb$（在工程中用 $j$ 代替 $i$ 以避免与电流符号冲突）可以看作复平面上的一个点或向量：实部 $a$ 是水平分量，虚部 $b$ 是垂直分量。复数有三种表示形式：代数形式 $a+jb$、极坐标形式 $r\angle\theta$、指数形式 $re^{j\theta}$，它们之间可以自由转换。</p>
+                    <p>两个复数相乘，相当于将向量的模相乘、角度相加——这正是交流电路中电压与电流之间幅值缩放和相位移动的数学本质。两个复数相除，则模相除、角度相减。这使得电路中的阻抗计算、分压分流变得直观：阻抗的模告诉你会放大还是缩小电流，阻抗的角度告诉你会产生多少相移。</p>
+                    <p>欧拉公式 $e^{j\theta} = \cos\theta + j\sin\theta$ 将指数函数与三角函数统一，被誉为"最美的数学公式"。由它可得 $\cos\theta=\dfrac{e^{j\theta}+e^{-j\theta}}{2}$，$\sin\theta=\dfrac{e^{j\theta}-e^{-j\theta}}{2j}$。在电路分析中，欧拉公式使得三角函数的加减乘除全部转化为指数运算，大幅简化了推导过程。共轭复数 $z^*=a-jb$ 也有重要应用：$z\cdot z^*=|z|^2=a^2+b^2$，在功率计算中常用到。</p>
+                    <div class="formula">$z = a + jb = r\,e^{j\theta} = r\angle\theta$<br>$|z| = \sqrt{a^2+b^2},\quad \theta = \arctan\dfrac{b}{a}$<br>欧拉公式: $e^{j\theta}=\cos\theta+j\sin\theta$<br>$z_1 z_2 = r_1 r_2\angle(\theta_1+\theta_2),\quad \dfrac{z_1}{z_2}=\dfrac{r_1}{r_2}\angle(\theta_1-\theta_2)$</div>
+                </div>
+            </div>
+
+            <!-- 2. 一阶/二阶微分方程 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">2. 一阶 / 二阶微分方程</div>
+                <div class="knowledge-body">
+                    <p>电路中电容和电感的存在使得电压电流满足微分方程。一阶方程描述RC/RL电路的指数充放电过程——就像存钱罐以固定比例每月复利增长。一阶常系数线性微分方程的通解由两部分组成：<strong>齐次解</strong>（对应自由响应/暂态响应，形式为 $Ae^{st}$）和<strong>特解</strong>（对应强制响应/稳态响应，由激励源决定）。全解为两者之和，待定系数由初始条件确定。</p>
+                    <p>二阶方程则出现在RLC电路中，会出现三种情况：过阻尼（两个不等负实根，响应缓慢衰减不振荡，像在蜂蜜中运动的弹簧）、欠阻尼（一对共轭复根，响应为衰减振荡，像被轻轻拨动后逐渐静止的音叉）、临界阻尼（两个相等负实根，最快回到平衡且不振荡，像"恰到好处"的汽车减震器）。</p>
+                    <p>工程师需要通过分析特征方程的根来判断系统响应类型。特征方程 $a_2 s^2 + a_1 s + a_0 = 0$ 的判别式 $\Delta = a_1^2 - 4a_0 a_2$ 决定了根的类型：$\Delta > 0$ 过阻尼，$\Delta < 0$ 欠阻尼，$\Delta = 0$ 临界阻尼。这直接决定了滤波器的截止特性和控制系统的稳定性。在实际工程中，我们通常希望系统处于欠阻尼或临界阻尼状态——过阻尼响应太慢，而严重欠阻尼的振荡可能损坏设备。</p>
+                    <div class="formula">一阶: $a_1\dfrac{dy}{dt}+a_0 y=f(t)$，通解 $y(t)=Ae^{-t/\tau}+y_p(t),\;\tau=a_1/a_0$<br>二阶: $a_2\dfrac{d^2y}{dt^2}+a_1\dfrac{dy}{dt}+a_0 y=f(t)$<br>特征根: $s_{1,2}=\dfrac{-a_1\pm\sqrt{a_1^2-4a_0 a_2}}{2a_2}$<br>判别式: $\Delta>0$ 过阻尼，$\Delta<0$ 欠阻尼（振荡频率 $\omega_d=\dfrac{\sqrt{4a_0 a_2-a_1^2}}{2a_2}$），$\Delta=0$ 临界阻尼</div>
+                </div>
+            </div>
+
+            <!-- 3. 矩阵与线性方程组 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">3. 矩阵与线性方程组</div>
+                <div class="knowledge-body">
+                    <p>分析一个复杂电路时，使用节点电压法或回路电流法会得到一组线性方程。矩阵就是整齐排列这些方程系数的"表格"，用克莱默法则或高斯消元法可以系统地求解。类比来说：解方程组就像同时调整多个旋钮使多个仪表同时达到指定读数，矩阵方法提供了高效、标准化的调节流程。</p>
+                    <p>矩阵的基本运算包括加法、数乘、乘法和求逆。矩阵乘法 $\mathbf{C}=\mathbf{AB}$ 的第 $i$ 行第 $j$ 列元素等于 $\mathbf{A}$ 的第 $i$ 行与 $\mathbf{B}$ 的第 $j$ 列的内积。特别注意：矩阵乘法<strong>不满足交换律</strong>（$\mathbf{AB}\neq\mathbf{BA}$ 通常成立），这是初学者常犯的错误。逆矩阵 $\mathbf{A}^{-1}$ 满足 $\mathbf{A}\mathbf{A}^{-1}=\mathbf{I}$，只有当行列式 $|\mathbf{A}|\neq 0$ 时才存在。</p>
+                    <p>在电路分析中，矩阵的应用无处不在：网孔法的电阻矩阵、节点法的导纳矩阵、状态空间法的状态矩阵。在计算机时代，大型电路（如集成电路有数百万个节点）的分析完全依赖矩阵的稀疏存储和数值求解算法（如LU分解、迭代法）。理解矩阵运算也是后续学习状态空间法、电力系统潮流计算、信号处理中离散系统的必要基础。特征值和特征向量 $\mathbf{A}\mathbf{x}=\lambda\mathbf{x}$ 则决定了系统的固有频率和振型，在振动分析和稳定性分析中至关重要。</p>
+                    <div class="formula">$\mathbf{A}\mathbf{x}=\mathbf{b} \;\Rightarrow\; \mathbf{x}=\mathbf{A}^{-1}\mathbf{b}$（当 $|\mathbf{A}|\neq 0$）<br>行列式: $|\mathbf{A}|=\sum_{\sigma}\text{sgn}(\sigma)\prod_{i}a_{i,\sigma(i)}$<br>特征值: $|\mathbf{A}-\lambda\mathbf{I}|=0$（特征方程）</div>
+                </div>
+            </div>
+
+            <!-- 4. 傅里叶级数与变换 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">4. 傅里叶级数与傅里叶变换</div>
+                <div class="knowledge-body">
+                    <p>任何周期信号都可以分解为一系列不同频率的正弦波之和——就像白光可以被棱镜分解为彩虹的七种颜色。傅里叶级数就是信号处理领域的"棱镜"。方波可以看作无穷多个奇次谐波正弦波叠加，锯齿波则包含所有整数次谐波。在电路分析中，当激励源不是正弦波而是方波、三角波等时，利用傅里叶级数将其展开为各次谐波分量，然后分别用相量法求解每个频率下的响应，最后叠加——这就是<strong>谐波分析法</strong>，是频域分析的基石。</p>
+                    <p>傅里叶级数有三种等价形式：<strong>三角形式</strong>（含 $a_n, b_n$ 系数）、<strong>指数形式</strong> $f(t)=\sum_{n=-\infty}^{\infty}c_n e^{jn\omega_0 t}$（更简洁，计算更方便）、<strong>振幅-相位形式</strong> $f(t)=A_0+\sum_{n=1}^{\infty}A_n\cos(n\omega_0 t+\phi_n)$（物理意义最直观）。系数的衰减速度反映了信号的光滑程度：不连续信号（方波）系数按 $1/n$ 衰减，连续但导数不连续的信号（三角波）按 $1/n^2$ 衰减。</p>
+                    <p>当信号不是周期信号时（如脉冲信号、阶跃信号），需要用<strong>傅里叶变换</strong>将时域信号直接映射到频域：$F(\omega)=\int_{-\infty}^{\infty}f(t)e^{-j\omega t}dt$。傅里叶变换是信号与系统课程的核心工具，它揭示了信号的频率成分，使得滤波、调制、采样等操作在频域中变得一目了然。</p>
+                    <div class="formula">三角形式: $f(t)=\dfrac{a_0}{2}+\sum_{n=1}^{\infty}[a_n\cos(n\omega_0 t)+b_n\sin(n\omega_0 t)]$<br>指数形式: $f(t)=\sum_{n=-\infty}^{\infty}c_n e^{jn\omega_0 t},\quad c_n=\dfrac{1}{T}\int_0^T f(t)e^{-jn\omega_0 t}dt$<br>傅里叶变换: $F(\omega)=\displaystyle\int_{-\infty}^{\infty}f(t)e^{-j\omega t}dt$</div>
+                </div>
+            </div>
+
+            <!-- 5. 拉普拉斯变换 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">5. 拉普拉斯变换</div>
+                <div class="knowledge-body">
+                    <p>拉普拉斯变换是傅里叶变换的推广，它将时域函数 $f(t)$ 映射到复频域函数 $F(s)$（$s=\sigma+j\omega$），使得微分运算变成乘法、积分变成除法、卷积变成乘积——就像对数把乘法变成加法一样巧妙。它是求解线性常系数微分方程和分析线性时不变系统的最强大工具。</p>
+                    <p>拉普拉斯变换的核心优势在于：<strong>自动包含初始条件</strong>。在电路分析中，电容和电感的s域模型自然包含了初始电压/电流，无需像时域那样单独列写非齐次方程和确定初值。例如电容在s域等效为阻抗 $1/sC$ 串联一个电压源 $v(0^-)/s$，这个电压源就是初始条件的"化身"。</p>
+                    <p>常用变换对需要熟记：单位阶跃 $u(t)\leftrightarrow\dfrac{1}{s}$，指数 $e^{-at}u(t)\leftrightarrow\dfrac{1}{s+a}$，冲激 $\delta(t)\leftrightarrow 1$，正弦 $\sin(\omega t)u(t)\leftrightarrow\dfrac{\omega}{s^2+\omega^2}$。部分分式展开是求逆变换的关键技巧——将复杂的 $F(s)$ 拆分为简单分式之和，再逐项查表逆变换回时域。留数定理也提供了求逆变换的另一种方法：$f(t)=\sum\text{Res}[F(s)e^{st}]$，对有理函数特别高效。</p>
+                    <div class="formula">定义: $F(s)=\displaystyle\int_0^{\infty}f(t)e^{-st}dt$<br>微分性质: $\mathcal{L}\{f'(t)\}=sF(s)-f(0^-)$<br>常用变换: $e^{-at}\leftrightarrow\dfrac{1}{s+a},\quad \sin\omega t\leftrightarrow\dfrac{\omega}{s^2+\omega^2},\quad \cos\omega t\leftrightarrow\dfrac{s}{s^2+\omega^2}$<br>卷积定理: $\mathcal{L}\{f*g\}=F(s)\cdot G(s)$</div>
+                </div>
+            </div>
+
+            <!-- 6. 留数定理与复变函数 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">6. 留数定理与复变函数基础</div>
+                <div class="knowledge-body">
+                    <p>复变函数理论是信号与系统、电磁场、微波技术等课程的数学基础。核心概念是<strong>解析函数</strong>：一个复变函数 $f(z)$ 如果在某区域内处处可导（且导数连续），则称该函数在该区域内解析。解析函数具有许多美妙的性质——它无穷次可导、其实部和虚部满足柯西-黎曼方程、沿闭合路径的积分为零（柯西积分定理）。</p>
+                    <p><strong>留数定理</strong>是复变函数理论中最强有力的计算工具：如果 $f(z)$ 在闭合曲线 $C$ 内除有限个奇点外解析，则 $\oint_C f(z)dz = 2\pi j\sum\text{Res}[f(z), z_k]$。通俗地说，围道积分的值只取决于曲线内部的奇点，与路径无关。这个定理使得许多在实数域中极难计算的定积分变得简单——只需找到被积函数在复平面上的极点，计算留数即可。</p>
+                    <p>在电气工程中，留数定理直接用于：①拉普拉斯逆变换——$F(s)$ 的极点就是留数点，逆变换 $f(t)=\sum_k\text{Res}[F(s)e^{st},p_k]$；②频率响应分析——网络函数的极点位置决定了系统的稳定性和瞬态特性；③电磁场边值问题——通过保角映射将复杂区域映射为简单区域求解。</p>
+                    <div class="formula">柯西积分定理: $\oint_C f(z)dz=0$（$f$ 在 $C$ 内解析）<br>留数定理: $\oint_C f(z)dz=2\pi j\displaystyle\sum_{k=1}^{n}\text{Res}[f(z),z_k]$<br>一阶极点留数: $\text{Res}[f(z),z_0]=\lim_{z\to z_0}(z-z_0)f(z)$<br>$n$阶极点: $\text{Res}[f(z),z_0]=\dfrac{1}{(n-1)!}\lim_{z\to z_0}\dfrac{d^{n-1}}{dz^{n-1}}[(z-z_0)^n f(z)]$</div>
+                </div>
+            </div>
+
+            <!-- 7. 常用积分变换与特殊函数 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">7. 常用积分变换对比与应用</div>
+                <div class="knowledge-body">
+                    <p>电气工程中常用的积分变换有三种：<strong>傅里叶变换</strong>、<strong>拉普拉斯变换</strong>和<strong>Z变换</strong>，它们分别适用于不同类型的信号和系统。傅里叶变换分析<strong>稳态频率特性</strong>，信号必须满足绝对可积条件；拉普拉斯变换是其推广，可以处理不满足绝对可积条件的信号（如阶跃信号、指数增长信号），引入收敛域（ROC）概念后更加严谨；Z变换则是离散时间信号的"拉普拉斯变换"，将差分方程转化为代数方程。</p>
+                    <p>三种变换的核心思想一致：将复杂的时域运算（微分/差分、卷积）转化为简单的频域运算（乘法），从而简化系统分析。在实际应用中，傅里叶变换用于<strong>频谱分析和滤波器设计</strong>（Bode图），拉普拉斯变换用于<strong>连续系统的瞬态分析和稳定性判断</strong>（s平面极点图），Z变换用于<strong>数字信号处理和离散控制系统</strong>（z平面极点图）。</p>
+                    <p>选择哪种变换取决于问题的性质：分析交流稳态用相量法（本质是傅里叶分析在单一频率的特例），分析暂态用拉普拉斯变换，分析数字系统用Z变换。三者之间的关系是：令 $s=j\omega$ 得到傅里叶变换，令 $z=e^{sT}$（$T$为采样周期）得到Z变换。</p>
+                    <div class="formula">傅里叶: $F(\omega)=\int_{-\infty}^{\infty}f(t)e^{-j\omega t}dt$（频域分析）<br>拉普拉斯: $F(s)=\int_0^{\infty}f(t)e^{-st}dt$（s域分析，$s=\sigma+j\omega$）<br>Z变换: $F(z)=\sum_{n=0}^{\infty}f[n]z^{-n}$（z域分析）<br>关系: 令 $s=j\omega$ 得傅里叶；令 $z=e^{sT}$ 得Z变换</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 模拟电子技术 ===== -->
+        <div class="sub-section">
+            <div class="sub-title">模拟电子技术</div>
+
+            <!-- 1. PN结与二极管 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">1. PN结与二极管</div>
+                <div class="knowledge-body">
+                    <p>把一块P型半导体和一块N型半导体贴合在一起，交界面处就会发生一个奇妙的过程：P区的多子（空穴）向N区扩散，N区的多子（自由电子）向P区扩散，扩散过去的载流子与对方的多数载流子复合，在交界面附近形成一个缺少可移动载流子的区域——<strong>空间电荷区</strong>，也就是PN结。这个区域内建了一个自内向外的电场（内建电场），它会阻碍载流子的进一步扩散，最终扩散运动与漂移运动达到动态平衡，形成稳定的PN结。</p>
+                    <p>给PN结加<strong>正向电压</strong>（P端接正、N端接负），外加电场削弱内建电场，势垒降低，多数载流子大量注入对方区域形成正向电流——就像打开了一道闸门，水流畅通无阻。加<strong>反向电压</strong>时，外加电场增强内建电场，势垒升高，只有极少数少子漂移形成微弱的反向饱和电流（温度敏感），PN结呈现高阻态——闸门被牢牢关住。这就是二极管"单向导电性"的物理本质。工程中常用的二极管模型有三种：<strong>理想模型</strong>（正向短路、反向开路）、<strong>恒压降模型</strong>（正向导通后压降恒为0.7V左右）、<strong>小信号模型</strong>（在静态工作点附近线性化为动态电阻 $r_d$）。</p>
+                    <p>二极管的典型应用包括：<strong>整流</strong>（将交流变为脉动直流）、<strong>钳位</strong>（将信号的某一点固定在特定电压）、<strong>限幅/削波</strong>（将信号幅度限制在一定范围内保护后续电路）。稳压二极管（齐纳二极管）利用反向击穿区的恒压特性实现稳压，发光二极管（LED）则利用PN结正向注入时的电致发光效应。</p>
+                    <div class="formula">PN结电流方程（Shockley方程）: $I = I_S\left(e^{V/V_T} - 1\right)$，其中 $V_T = \dfrac{kT}{q} \approx 26\,\text{mV}$（室温）<br>正向导通: $V_D \approx 0.7\,\text{V}$（硅管），$V_D \approx 0.3\,\text{V}$（锗管）<br>小信号动态电阻: $r_d = \dfrac{V_T}{I_{DQ}} \approx \dfrac{26\,\text{mV}}{I_{DQ}}$</div>
+                </div>
+            </div>
+
+            <!-- 2. 双极结型晶体管 (BJT) -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">2. 双极结型晶体管 (BJT)</div>
+                <div class="knowledge-body">
+                    <p>BJT是在同一块半导体上制作两个背靠背的PN结形成的三层结构：<strong>NPN</strong>型（两层N夹一层薄P）和<strong>PNP</strong>型（两层P夹一层薄N）。三个引出端分别叫<strong>发射极(E)</strong>、<strong>基极(B)</strong>、<strong>集电极(C)</strong>。基区做得很薄（微米级）且掺杂浓度低，这是BJT能够实现电流放大的关键——从发射极注入基区的载流子绝大部分来不及复合就被集电极"收集"走了。</p>
+                    <p>BJT有三个工作区域：<strong>放大区</strong>（发射结正偏、集电结反偏）：集电极电流 $I_C$ 与基极电流 $I_B$ 成正比，$I_C = \beta I_B$，$\beta$（共射电流放大系数）典型值为50~300，这就是BJT的核心放大能力。想象一个水龙头：你用很小的力（$I_B$）拧一下，就能控制一大股水流（$I_C$）——这就是"以小控大"的放大本质。<strong>饱和区</strong>（两个结均正偏）：$I_C$ 不再随 $I_B$ 增大而增大，$V_{CE}$ 降至约0.3V，BJT相当于闭合开关。<strong>截止区</strong>（两个结均反偏）：$I_C \approx 0$，BJT相当于断开开关。饱和区和截止区对应数字电路中的"1"和"0"。</p>
+                    <p>BJT的三种基本组态：<strong>共射极(CE)</strong>——输入信号从基极入、从集电极出，电压和电流增益均较大，是最常用的放大组态，但输入阻抗较低；<strong>共基极(CB)</strong>——输入从发射极入、输出从集电极出，电压增益大但电流增益约等于1，输入阻抗极低，高频特性好，常用于射频放大和宽带放大；<strong>共集电极(CC)</strong>——输入从基极入、输出从射极出，电压增益约等于1但电流增益大，输入阻抗高、输出阻抗低，常用作缓冲器（射极跟随器）。</p>
+                    <div class="formula">电流关系: $I_C = \beta I_B,\quad I_E = I_C + I_B = (1+\beta)I_B$<br>共射: $\beta = \dfrac{I_C}{I_B},\quad \alpha = \dfrac{I_C}{I_E} = \dfrac{\beta}{1+\beta}$<br>放大条件: 发射结正偏 ($V_{BE} \approx 0.7\text{V}$)，集电结反偏 ($V_{CB} > 0$)</div>
+                </div>
+            </div>
+
+            <!-- 3. 场效应管 (FET/MOSFET) -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">3. 场效应管 (FET / MOSFET)</div>
+                <div class="knowledge-body">
+                    <p>如果说BJT是"电流控制电流"的器件，那么FET就是"电压控制电流"的器件——它通过改变栅极电压来控制沟道中的电流，输入端几乎不消耗电流，输入阻抗极高（可达 $10^{12}\,\Omega$ 以上）。FET主要分为<strong>结型场效应管(JFET)</strong>和<strong>绝缘栅场效应管(MOSFET)</strong>两大类。MOSFET因为制造工艺简单、集成度高，已成为集成电路中最核心的器件。</p>
+                    <p>MOSFET的结构：在P型衬底上制作两个高掺杂的N区（源极S和漏极D），源漏之间的上方覆盖一层极薄的氧化硅绝缘层，再在绝缘层上制作金属栅极G。当栅极加正电压时，P型衬底表面的空穴被排斥、电子被吸引，在源漏之间形成一层N型导电沟道——这就是<strong>增强型NMOS</strong>的工作原理。栅压越高，沟道越宽，电流越大。如果在制造时就已经预置了导电沟道（无需栅压即可导通），则为<strong>耗尽型MOSFET</strong>。</p>
+                    <p>MOSFET的<strong>转移特性</strong>描述了漏极电流 $I_D$ 与栅源电压 $V_{GS}$ 的关系：增强型NMOS在 $V_{GS}$ 超过阈值电压 $V_{TH}$ 后开始导通，饱和区 $I_D = \dfrac{1}{2}k_n(V_{GS}-V_{TH})^2$，呈现平方律关系。<strong>跨导</strong> $g_m = \dfrac{\partial I_D}{\partial V_{GS}}$ 衡量了栅压对漏极电流的控制能力，$g_m = k_n(V_{GS}-V_{TH})$。与BJT相比，MOSFET的主要优势在于：功耗极低（栅极不取电流）、热稳定性好（正温度系数可自动均流）、开关速度快、制造工艺简单——这些优势使得MOSFET在CMOS数字集成电路和功率电子中占据绝对主导地位。</p>
+                    <div class="formula">增强型NMOS转移特性（饱和区）: $I_D = \dfrac{1}{2}k_n(V_{GS}-V_{TH})^2,\quad V_{DS} \geq V_{GS}-V_{TH}$<br>跨导: $g_m = k_n(V_{GS}-V_{TH}) = \sqrt{2k_n I_D}$<br>导通电阻: $r_{DS(on)} = \dfrac{1}{k_n(V_{GS}-V_{TH})}$</div>
+                </div>
+            </div>
+
+            <!-- 4. 基本放大电路 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">4. 基本放大电路</div>
+                <div class="knowledge-body">
+                    <p>放大电路的核心任务是将微弱的输入信号放大为足够大的输出信号，同时保持波形不失真。一个典型的<strong>共射极放大电路</strong>由BJT、偏置电阻、集电极电阻和耦合电容组成。首先需要通过<strong>直流偏置</strong>让BJT工作在放大区的合适位置——这个位置叫<strong>静态工作点(Q点)</strong>。最常用的偏置方式是<strong>分压式偏置</strong>：用两个电阻对电源分压给基极提供稳定的偏置电压，射极串联一个电阻 $R_E$ 引入直流负反馈来稳定Q点。当温度升高导致 $I_C$ 增大时，$V_E$ 升高使 $V_{BE}$ 降低，$I_B$ 减小，从而抑制 $I_C$ 的增大——这就是自动稳定的过程。</p>
+                    <p>分析放大电路采用<strong>直流通路与交流通路分离</strong>的方法：先画直流通路（电容开路）求静态工作点 $I_{CQ}$ 和 $V_{CEQ}$；再画交流通路（电容短路、直流电源接地），用<strong>小信号模型</strong>（BJT等效为 $r_\pi$、$g_m v_\pi$ 和 $r_o$）分析动态性能。电压增益 $A_v = -g_m(R_C \| R_L)$，负号表示输出与输入反相——这是共射极放大的标志。输入电阻 $R_{in} = R_1 \| R_2 \| r_\pi$，输出电阻 $R_{out} \approx R_C$。</p>
+                    <p>Q点的稳定性至关重要：如果Q点偏高（$I_{CQ}$ 太大），信号正半周可能使BJT进入饱和区产生<strong>饱和失真</strong>；Q点偏低则可能进入截止区产生<strong>截止失真</strong>。最佳Q点应位于负载线的中点，使输出信号有最大的不失真摆幅。分压式偏置电路通过 $R_E$ 的直流负反馈自动稳定Q点，是实际中最常用的偏置方案。</p>
+                    <div class="formula">Q点: $I_{BQ}=\dfrac{V_{TH}-V_{BEQ}}{R_{TH}+(1+\beta)R_E},\quad I_{CQ}=\beta I_{BQ}$<br>小信号电压增益: $A_v = -g_m(R_C \| R_L),\quad g_m = \dfrac{I_{CQ}}{V_T}$<br>输入电阻: $R_{in} = R_1 \| R_2 \| r_\pi,\quad r_\pi = \dfrac{\beta V_T}{I_{CQ}}$<br>输出电阻: $R_{out} \approx R_C$</div>
+                </div>
+            </div>
+
+            <!-- 5. 多级放大电路与频率响应 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">5. 多级放大电路与频率响应</div>
+                <div class="knowledge-body">
+                    <p>单级放大器的增益往往不够，实际电路通常由多级放大器级联而成。级间耦合方式有三种：<strong>RC耦合</strong>（通过电容连接，简单常用但不能传递直流）、<strong>变压器耦合</strong>（可实现阻抗变换和电气隔离，但体积大、频率响应差）、<strong>直接耦合</strong>（无电容，可放大直流和缓慢变化的信号，但存在零点漂移问题）。多级放大器的总增益等于各级增益之积：$A_{v,total} = A_{v1} \cdot A_{v2} \cdots A_{vn}$，用分贝表示则为各级增益之和。</p>
+                    <p><strong>频率响应</strong>分析揭示了放大器在不同频率下的增益变化。低频段，耦合电容和旁路电容的容抗增大导致增益下降；高频段，BJT的结电容和寄生电容使增益衰减。中间一段频率增益基本恒定，称为<strong>中频增益</strong>。增益下降到中频增益的 $1/\sqrt{2}$（即-3dB）时对应的频率分别称为<strong>下限截止频率</strong> $f_L$ 和<strong>上限截止频率</strong> $f_H$，两者之间的范围就是<strong>带宽</strong> $BW = f_H - f_L$。</p>
+                    <p>高频分析中一个极其重要的概念是<strong>密勒效应(Miller Effect)</strong>：跨接在放大器输入输出之间的电容 $C$，从输入端看过去等效为 $(1-|A_v|)C$，从输出端看过去等效为 $(1-1/|A_v|)C$。这意味着即使很小的反馈电容，在高增益放大器中也会在输入端呈现巨大的等效电容，严重限制了上限频率。密勒效应是多级放大器高频带宽受限的主要原因之一。<strong>增益带宽积</strong> $GBP = A_v \cdot BW$ 是一个近似常数，意味着增益和带宽之间存在"鱼与熊掌不可兼得"的折中关系。Bode图是描述频率响应的标准工具，横轴为对数频率，纵轴为增益的分贝值和相位角度。</p>
+                    <div class="formula">总增益: $A_{v,total} = A_{v1} \cdot A_{v2} \cdots A_{vn}$，分贝: $A_v(\text{dB}) = 20\log|A_v|$<br>密勒效应: $C_M = (1+|A_v|)C_f$（输入端等效电容）<br>增益带宽积: $GBP = A_{v,mid} \times BW \approx \text{const}$<br>-3dB带宽: $BW = f_H - f_L$</div>
+                </div>
+            </div>
+
+            <!-- 6. 负反馈放大电路 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">6. 负反馈放大电路</div>
+                <div class="knowledge-body">
+                    <p><strong>反馈</strong>是将输出信号的一部分通过反馈网络引回到输入端的过程。如果引回的信号与原输入信号相位相反（削弱净输入），就是<strong>负反馈</strong>——这是模拟电子技术中最重要、最普遍的概念。类比：空调的温控系统就是负反馈——设定25度，室温高于25度就制冷，低于25度就停止，最终室温稳定在25度附近。负反馈的代价是降低了增益，但换来的是增益稳定性、带宽扩展、输入输出阻抗改善、非线性失真减小等一系列好处。</p>
+                    <p>负反馈有四种基本拓扑结构，按取样方式（输出端）和比较方式（输入端）分类：<strong>电压串联负反馈</strong>（稳定输出电压，增大输入阻抗，如运放同相放大器）、<strong>电压并联负反馈</strong>（稳定输出电压，减小输入阻抗，如运放反相放大器）、<strong>电流串联负反馈</strong>（稳定输出电流，增大输入阻抗，如射极跟随器的变体）、<strong>电流并联负反馈</strong>（稳定输出电流，减小输入阻抗）。判断反馈类型的口诀："输出看取样——电压还是电流（短路法），输入看比较——串联还是并联"。</p>
+                    <p>深度负反馈（环路增益 $|AF| \gg 1$）时，闭环增益 $A_f \approx 1/F$，几乎只取决于反馈网络的参数（通常是电阻比），与放大器本身的增益无关。这就是为什么运放电路的增益可以用外部电阻精确设定——放大器内部参数的温度漂移、制造偏差都被负反馈"吃掉"了。此外，负反馈使带宽扩展为 $BW_f = BW(1+AF)$，输入输出阻抗按拓扑类型分别增大或减小 $(1+AF)$ 倍。</p>
+                    <div class="formula">闭环增益: $A_f = \dfrac{A}{1+AF}$（$1+AF$ 为反馈深度）<br>深度负反馈: $|AF|\gg 1 \;\Rightarrow\; A_f \approx \dfrac{1}{F}$<br>带宽扩展: $BW_f = BW \cdot (1+AF)$<br>增益带宽积不变: $A_f \cdot BW_f = A \cdot BW$</div>
+                </div>
+            </div>
+
+            <!-- 7. 运算放大器基础 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">7. 运算放大器基础</div>
+                <div class="knowledge-body">
+                    <p>运算放大器（Op-Amp）是模拟电路中最核心的集成电路器件，它将数十个BJT或MOSFET封装在一个芯片中，提供极高的开环增益（$10^5$ 以上）、极高的输入阻抗和极低的输出阻抗。分析运放电路有两个"黄金法则"：<strong>虚短</strong>（$v_+ = v_-$，两输入端电压近似相等，因为负反馈强制它们趋同）和<strong>虚断</strong>（$i_+ = i_- = 0$，流入输入端的电流近似为零，因为输入阻抗极高）。这两个概念就像"虚拟的短路和开路"，是分析一切运放电路的利器。</p>
+                    <p>基于虚短和虚断，可以快速推导出各种经典运放电路：<strong>反相放大器</strong> $A_v = -R_f/R_1$（输出与输入反相，增益由外部电阻比精确决定）；<strong>同相放大器</strong> $A_v = 1 + R_f/R_1$（输出与输入同相，增益始终大于1）；<strong>求和放大器</strong>（多路输入加权求和，$v_o = -R_f(\frac{v_1}{R_1}+\frac{v_2}{R_2}+\cdots)$）；<strong>积分器</strong>（输出是输入的积分，$v_o = -\frac{1}{RC}\int v_i\,dt$，用于波形变换和PID控制）；<strong>微分器</strong>（输出是输入的微分，$v_o = -RC\dfrac{dv_i}{dt}$，用于信号边沿检测）。</p>
+                    <p>运放的非线性应用同样重要：<strong>电压比较器</strong>将输入电压与参考电压比较，输出高/低电平（开环或正反馈工作）；<strong>迟滞比较器（施密特触发器）</strong>引入正反馈产生两个不同的门限电压，抗干扰能力强，广泛用于波形整形和电平检测——就像一个有"惯性"的开关，不会因为输入信号在门限附近抖动而反复翻转。</p>
+                    <div class="formula">虚短: $v_+ = v_-,\quad$ 虚断: $i_+ = i_- = 0$<br>反相放大: $v_o = -\dfrac{R_f}{R_1}v_i$<br>同相放大: $v_o = \left(1+\dfrac{R_f}{R_1}\right)v_i$<br>积分器: $v_o(t) = -\dfrac{1}{RC}\int_0^t v_i(\tau)\,d\tau + v_o(0)$<br>施密特触发器门限: $V_{TH} = \dfrac{R_2}{R_1+R_2}V_{sat}$</div>
+                </div>
+            </div>
+
+            <!-- 8. 功率放大电路 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">8. 功率放大电路</div>
+                <div class="knowledge-body">
+                    <p>电压放大器的任务是"放大电压"，追求的是增益和波形质量；而<strong>功率放大器</strong>的任务是给负载提供足够的功率（如扬声器、电机、天线），追求的是<strong>输出功率大、效率高、失真小</strong>。效率 $\eta = P_{out}/P_{DC}$ 是功率放大器最关键的指标——效率低意味着大量电能变成了热量，不仅浪费能源还可能烧毁器件。</p>
+                    <p>按导通角分类：<strong>甲类(A类)</strong>放大器——晶体管在整个信号周期内始终导通（导通角360度），工作点在负载线中点，波形不失真但效率极低，最大理论效率仅25%（变压器耦合可达50%），就像一个始终开着的水龙头，不管你用不用水它都在流。<strong>乙类(B类)</strong>放大器——晶体管只在信号的半周期导通（导通角180度），两个互补的管子（一个NPN、一个PNP）交替工作组成<strong>推挽</strong>结构，效率高但交界处会产生<strong>交越失真</strong>。<strong>甲乙类(AB类)</strong>放大器——给两个管子各加一个小的偏置电压使它们微导通（导通角略大于180度），既消除了交越失真又保持了较高效率（最大约78.5%），是实际音频功放最常用的方案。</p>
+                    <p><strong>丁类(D类)放大器</strong>利用PWM（脉宽调制）技术，让晶体管工作在开关状态（完全导通或完全截止），理论效率可达100%，实际也常超过90%。D类功放体积小、发热少，广泛用于手机、蓝牙音箱等便携设备。但D类功放输出需要LC低通滤波器还原模拟信号，且可能产生电磁干扰。功率放大器的<strong>热设计</strong>同样重要：管子的功耗 $P_C = P_{DC} - P_{out}$ 转化为热量，必须通过散热片将结温控制在安全范围内，否则会发生热击穿。</p>
+                    <div class="formula">甲类效率: $\eta_{max} = 25\%$（电阻负载），$\eta_{max} = 50\%$（变压器耦合）<br>乙类/甲乙类效率: $\eta_{max} = \dfrac{\pi}{4} \approx 78.5\%$<br>最大输出功率: $P_{om} = \dfrac{V_{CC}^2}{2R_L}$（乙类推挽）<br>管耗: $P_C = P_{DC} - P_{out} = \dfrac{2V_{CC}^2}{\pi R_L}\cdot\dfrac{V_{om}}{V_{CC}} - \dfrac{V_{om}^2}{2R_L}$</div>
+                </div>
+            </div>
+
+            <!-- 9. 信号发生电路 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">9. 信号发生电路</div>
+                <div class="knowledge-body">
+                    <p>信号发生电路（振荡器）能够在没有外部输入信号的情况下产生特定频率的正弦波输出——它把直流电能转化为交流信号。这听起来像"无中生有"，实际上振荡器利用了<strong>正反馈</strong>：将放大器输出的一部分以正确的相位引回到输入端，使微小的噪声扰动不断被放大、选频、再放大，最终建立稳定的等幅振荡。</p>
+                    <p>产生振荡必须满足<strong>巴克豪森判据(Barkhausen Criterion)</strong>：环路增益 $|AF| = 1$（幅值条件），环路相移 $\angle AF = 2n\pi$（相位条件，$n=0,1,2,...$）。起振时通常令 $|AF| > 1$，利用器件的非线性（增益随振幅增大而降低）自动将振幅稳定在 $|AF|=1$ 的平衡点。</p>
+                    <p>常见的正弦振荡器类型：<strong>RC振荡器</strong>——<strong>文氏电桥(Wien Bridge)振荡器</strong>最经典，用RC串并联网络做选频反馈，在谐振频率 $f_0 = 1/(2\pi RC)$ 处相移为零，配合非线性稳幅（如热敏电阻或二极管限幅），产生低失真的正弦波，适合低频应用（几Hz~几百kHz）。<strong>LC振荡器</strong>——<strong>考毕兹(Colpitts)</strong>振荡器用电容分压做反馈，<strong>哈特莱(Hartley)</strong>振荡器用电感分压做反馈，适合高频应用（MHz级别），广泛用于射频通信的本振源。<strong>晶体振荡器</strong>——利用石英晶体的压电效应和极高的品质因数（$Q$值可达数万），产生频率极其稳定的振荡信号，是数字系统时钟、手表、GPS接收器的核心器件。<strong>移相振荡器</strong>——用三节RC网络产生180度相移，配合反相放大器的180度相移满足360度总相移条件。</p>
+                    <div class="formula">巴克豪森判据: $|AF|=1,\quad \angle AF = 2n\pi$<br>文氏电桥振荡频率: $f_0 = \dfrac{1}{2\pi RC}$，起振条件 $A_v \geq 3$<br>LC振荡频率: $f_0 = \dfrac{1}{2\pi\sqrt{LC}}$<br>晶体等效电路: $f_s = \dfrac{1}{2\pi\sqrt{L_q C_q}},\quad f_p \approx f_s\left(1+\dfrac{C_q}{2C_0}\right)$</div>
+                </div>
+            </div>
+
+            <!-- 10. 直流稳压电源 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">10. 直流稳压电源</div>
+                <div class="knowledge-body">
+                    <p>几乎所有的电子设备都需要稳定的直流电源供电。从交流电网获得稳定直流电压的过程是：<strong>变压→整流→滤波→稳压</strong>，这就是直流稳压电源的四个基本环节。类比：交流电就像来回摆动的水车，整流器把来回摆动变成单向脉动，滤波器把脉动平滑成接近直流，稳压器则确保无论负载怎么变化、电网电压怎么波动，输出电压都保持恒定。</p>
+                    <p><strong>整流电路</strong>：半波整流只利用交流的正半周，效率低、纹波大；全波整流利用正负两个半周（需中心抽头变压器）；<strong>桥式整流</strong>用四个二极管组成电桥，无需中心抽头，是应用最广泛的整流方案。输出平均电压 $V_{avg} = 0.9V_2$（全波/桥式），半波为 $0.45V_2$，其中 $V_2$ 是变压器次级电压有效值。</p>
+                    <p><strong>滤波电路</strong>：最简单的是在整流输出端并联一个大电容（通常几百到几千微法），利用电容的充放电平滑脉动。空载时输出接近峰值 $\sqrt{2}V_2$，带载后纹波增大。滤波电容的选取与负载电流和允许纹波有关：$C \geq \dfrac{I_{load}}{2f\Delta V}$（全波整流，$f$ 为电源频率）。要求更高的场合可采用LC滤波或π型滤波。<strong>稳压电路</strong>分两大类：<strong>线性稳压器</strong>（如7805/7905系列三端稳压器，输出固定+5V/-5V，电路简单、纹波小、响应快，但效率低，压差全部变成热量）；<strong>开关稳压器</strong>（通过高频开关和电感储能实现电压转换，效率可达85%以上，但输出纹波较大、需要EMI滤波）。纹波系数 $r = V_{ripple,rms}/V_{DC}$ 衡量了输出电压的平滑程度，高品质电源要求 $r < 1\%$。</p>
+                    <div class="formula">桥式整流: $V_{avg} = \dfrac{2\sqrt{2}}{\pi}V_2 \approx 0.9V_2,\quad V_{rms} = V_2$<br>电容滤波纹波: $V_r = \dfrac{I_{load}}{2fC}$（全波），$r = \dfrac{V_r}{V_{DC}}$<br>线性稳压效率: $\eta = \dfrac{V_{out}}{V_{in}} \times 100\%$<br>开关稳压(Buck): $V_{out} = D \cdot V_{in}$，$D$ 为占空比，$0 < D < 1$</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 数字电子技术 ===== -->
+        <div class="sub-section">
+            <div class="sub-title">数字电子技术</div>
+
+            <!-- 1. 数制与编码 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">1. 数制与编码</div>
+                <div class="knowledge-body">
+                    <p>我们日常生活中使用十进制（逢十进一），但在数字电路和计算机的世界里，一切信息都以二进制（逢二进一）来表示——因为晶体管的导通与截止天然对应"1"和"0"两个状态。除了二进制，工程师还常用八进制和十六进制作为二进制的"简写"：每3位二进制对应1位八进制，每4位二进制对应1位十六进制。例如二进制 <code>1011 1100</code> 写成十六进制就是 <code>BC</code>，大大缩短了书写长度。十六进制用0-9和A-F表示0到15，在内存地址、颜色代码（如 #FF5733）中无处不在。</p>
+                    <p><strong>BCD编码</strong>（Binary-Coded Decimal）用4位二进制表示一位十进制数，最常用的是<strong>8421码</strong>（即自然二进制码对应十进制0-9）。但8421码在十进制9（1001）之后到16（10000）之间有6个无效码（1010-1111），需要在加法运算后做加6修正。<strong>5421码</strong>的最高位权重为5，对称性更好，适合某些计数器设计。<strong>余3码</strong>是在8421码基础上加3得到的无权码，其特点是9的补码只需按位取反，便于十进制减法运算。</p>
+                    <p><strong>格雷码</strong>（Gray Code）是一种相邻编码之间只有一位不同的循环码。例如3位格雷码序列为 000-001-011-010-110-111-101-100。这种"单步变化"特性在工程中极为重要：编码器的机械圆盘使用格雷码可以避免在边界位置多个位同时跳变导致的"毛刺"错误；Karnaugh图的行列编号也使用格雷码，保证相邻格子只有一个变量不同。<strong>ASCII码</strong>则用7位二进制（可扩展为8位）表示字符，如字母 'A' = 65（十进制）= 41（十六进制），是计算机文本处理的基础。掌握各种数制之间的相互转换方法是学习数字电子技术的第一步，常用的转换手段包括"除基取余法"（十进制转其他进制）和"按权展开求和法"（其他进制转十进制）。</p>
+                    <div class="formula">数制转换: $(N)_{10} = d_n \times r^n + \cdots + d_1 \times r^1 + d_0 \times r^0$<br>8421 BCD: 十进制 $57_{10} = 0101\;0111_{\text{BCD}}$<br>余3码: 8421码 + 0011，例如 $9_{10} = 1001_{8421} \to 1100_{\text{余3}}$<br>格雷码: $G = N \oplus (N \gg 1)$（二进制右移一位后异或）</div>
+                </div>
+            </div>
+
+            <!-- 2. 逻辑代数基础 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">2. 逻辑代数基础</div>
+                <div class="knowledge-body">
+                    <p>逻辑代数（布尔代数）是数字电路的数学语言。它只有两种取值——真（1）和假（0），三种基本运算——<strong>与</strong>（AND，所有输入为1时输出1）、<strong>或</strong>（OR，任一输入为1时输出1）、<strong>非</strong>（NOT，取反）。就像水管系统：与门像串联的两个阀门必须都打开水才能流过；或门像并联的两条管路，任一条通畅水就能流；非门像一个常开阀门加一个电磁开关，通电时反而关闭。</p>
+                    <p><strong>德摩根定理</strong>是最重要的对偶律：$\overline{A \cdot B} = \overline{A} + \overline{B}$，$\overline{A + B} = \overline{A} \cdot \overline{B}$。通俗理解就是"与的非等于非的或，或的非等于非的与"，这在电路化简和 NAND/NOR 通用门实现中至关重要。<strong>吸收律</strong> $A + AB = A$ 和 $A(A+B) = A$ 可以消去冗余项；<strong>一致性（共识）定理</strong> $AB + \overline{A}C + BC = AB + \overline{A}C$ 告诉我们冗余的第三项可以省略。</p>
+                    <p><strong>最小项标准式（SOP）</strong>是"积之和"形式：每个乘积项包含所有变量（原变量或反变量），对应真值表中输出为1的每一行。例如3变量函数 $F(A,B,C) = \sum m(1,3,5,7)$ 展开为 $F = \overline{A}\overline{B}C + \overline{A}BC + A\overline{B}C + ABC$。<strong>最大项标准式（POS）</strong>是"和之积"形式，对应输出为0的行。两种标准式可以互相转换。<strong>卡诺图</strong>是化简逻辑函数的图形工具：将最小项按格雷码排列在方格中，圈出相邻的1（2的幂次个），每个圈对应一个化简后的乘积项。圈越大项越简，圈数越少乘积项越少。对于不关心的输入组合（无关项），可以在卡诺图中用"x"标记，化简时根据需要将其视为0或1以得到更大的圈。</p>
+                    <div class="formula">德摩根: $\overline{A \cdot B} = \overline{A} + \overline{B},\quad \overline{A + B} = \overline{A} \cdot \overline{B}$<br>SOP: $F = \sum m(i) = \text{各最小项之积的和}$<br>POS: $F = \prod M(j) = \text{各最大项之和的积}$<br>吸收律: $A + AB = A,\quad A(A + B) = A$<br>一致性: $AB + \overline{A}C + BC = AB + \overline{A}C$</div>
+                </div>
+            </div>
+
+            <!-- 3. 门电路 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">3. 门电路</div>
+                <div class="knowledge-body">
+                    <p>门电路是数字系统的基本构建单元，就像建筑中的砖块。两大主流工艺是<strong>TTL</strong>（晶体管-晶体管逻辑，74系列）和<strong>CMOS</strong>（互补金属氧化物半导体，4000系列/74HC系列）。TTL以双极型晶体管为核心，速度快但功耗较高；CMOS以PMOS和NMOS互补对管为核心，静态功耗几乎为零，已成为当今集成电路的绝对主流。现代工艺中，74HC/74HCT系列兼具CMOS低功耗和TTL电平兼容的优点。</p>
+                    <p><strong>电压传输特性</strong>描述了输出电压随输入电压变化的曲线。理想的数字门应有明确的阈值：输入低于某电压判为"0"，高于某电压判为"1"，中间为不确定区。<strong>噪声容限</strong>衡量了电路抵抗干扰的能力：$NM_H = V_{OH(min)} - V_{IH(min)}$（高电平噪声容限），$NM_L = V_{IL(max)} - V_{OL(max)}$（低电平噪声容限）。CMOS的噪声容限通常为电源电压的30%-45%，远优于TTL的0.4V，这就是为什么CMOS更适合高噪声环境。</p>
+                    <p><strong>扇入</strong>（Fan-in）指一个门能承受的输入端数目，<strong>扇出</strong>（Fan-out）指一个门的输出能驱动同类门的最大数目。TTL的扇出通常为10左右，CMOS在低频下扇出可达数千（受限于负载电容引起的延迟）。<strong>开集/开漏输出</strong>（OC/OD）去掉了上拉电阻，允许外接上拉电阻实现线与逻辑和电平转换。<strong>三态门</strong>（Tri-state）增加了"高阻态"（Z），输出可以断开与总线的连接，是构建数据总线的关键——多个三态门的输出可以共享同一根导线，只要保证同一时刻只有一个门处于工作状态。<strong>传输延迟</strong> $t_{pd}$ 是信号从输入到输出的延迟时间，典型TTL为10ns，CMOS为几十ns，这是数字系统最高时钟频率的根本限制。</p>
+                    <div class="formula">噪声容限: $NM_H = V_{OH(min)} - V_{IH(min)},\quad NM_L = V_{IL(max)} - V_{OL(max)}$<br>扇出: $FO = \min\!\left(\dfrac{I_{OH(max)}}{I_{IH(max)}},\;\dfrac{I_{OL(max)}}{I_{IL(max)}}\right)$<br>传播延迟: $t_{pd} = \dfrac{t_{pHL} + t_{pLH}}{2}$<br>最高频率: $f_{max} \approx \dfrac{1}{n \cdot t_{pd}}$（$n$ 为关键路径门数）</div>
+                </div>
+            </div>
+
+            <!-- 4. 组合逻辑电路 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">4. 组合逻辑电路</div>
+                <div class="knowledge-body">
+                    <p>组合逻辑电路的输出仅取决于当前输入，与电路的历史状态无关——就像一台计算器，你按什么键它就显示什么结果，不记得上一步算过什么。设计组合逻辑电路的标准流程是：①分析问题，列出<strong>真值表</strong>；②由真值表写出逻辑表达式；③用卡诺图或公式化简；④用门电路实现；⑤验证功能。这个流程是从"需求"到"电路"的桥梁。</p>
+                    <p><strong>加法器</strong>是最经典的组合电路。半加器处理两个一位二进制数的加法，产生和 $S = A \oplus B$ 和进位 $C = A \cdot B$。全加器增加一个进位输入 $C_{in}$，构成 $S = A \oplus B \oplus C_{in}$，$C_{out} = AB + C_{in}(A \oplus B)$。将多个全加器串联构成<strong>行波进位加法器</strong>（Ripple-Carry Adder），结构简单但速度慢——进位需要从低位到高位逐级传递。为解决这个瓶颈，<strong>超前进位加法器</strong>（Look-Ahead Carry）通过并行计算各进位信号 $C_i = G_i + P_i C_0$（其中生成项 $G_i = A_i B_i$，传播项 $P_i = A_i \oplus B_i$），将加法速度从线性级提升到对数级。</p>
+                    <p>常用组合模块包括：<strong>译码器</strong>（如3-8译码器74HC138，将$n$位输入译为$2^n$个输出中唯一一个有效）、<strong>编码器</strong>（将$2^n$个输入编码为$n$位输出，优先编码器如74HC148允许多个输入同时有效时只编码最高优先级的）、<strong>多路选择器</strong>（MUX，根据选择信号从多路输入中选择一路输出，如8选1 MUX可用3位选择信号选通8路数据中的1路）。MUX还能实现任意组合逻辑函数：将变量接入数据输入端和选择端，本质上是一个查找表（LUT），这也是FPGA中可配置逻辑的核心原理。此外还有<strong>数据分配器</strong>（Demultiplexer，MUX的逆操作，将一路输入分发到多路输出之一）和<strong>数值比较器</strong>等常用模块。</p>
+                    <div class="formula">半加器: $S = A \oplus B,\quad C = AB$<br>全加器: $S = A \oplus B \oplus C_{in},\quad C_{out} = AB + C_{in}(A \oplus B)$<br>超前进位: $G_i = A_i B_i,\; P_i = A_i \oplus B_i,\; C_{i+1} = G_i + P_i C_i$<br>2$^n$选1 MUX: $Y = \sum_{k=0}^{2^n-1} D_k \cdot m_k$（$m_k$ 为选择变量的最小项）</div>
+                </div>
+            </div>
+
+            <!-- 5. 触发器 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">5. 触发器</div>
+                <div class="knowledge-body">
+                    <p>如果组合逻辑电路是"计算器"，那么触发器就是"记忆单元"——它能记住一个比特（0或1）的状态，直到下一次被改变。触发器是时序逻辑电路的基石。最基本的触发器是<strong>SR锁存器</strong>：用两个交叉耦合的NAND门构成，$S=1$ 置位（$Q=1$），$R=1$ 复位（$Q=0$），$S=R=0$ 保持不变，但 $S=R=1$ 是禁止状态（会导致不确定输出）。</p>
+                    <p><strong>JK触发器</strong>解决了SR的禁止问题：当 $J=K=1$ 时输出翻转（$Q_{next} = \overline{Q}$），功能最完备。<strong>D触发器</strong>只有一个数据输入 $D$，时钟沿到来时 $Q_{next} = D$，是使用最广泛的触发器——它的功能是"采样并保持"，就像在特定时刻给数据拍快照。<strong>T触发器</strong>（$T=1$ 时翻转，$T=0$ 时保持）常用于分频和计数。各种触发器之间可以互相转换，例如将D触发器的 $\overline{Q}$ 反馈到 $D$ 输入即构成T'触发器（每来一个时钟沿翻转一次，实现二分频）。</p>
+                    <p>触发器的<strong>触发方式</strong>至关重要：<strong>主从触发器</strong>（Master-Slave）在时钟高电平期间主锁存器采样、低电平期间从锁存器输出，虽然避免了"空翻"但存在一次变化问题；<strong>边沿触发器</strong>只在时钟上升沿（或下降沿）的瞬间采样，抗干扰能力更强。关键时序参数包括：<strong>建立时间</strong> $t_{su}$（时钟沿到来之前数据必须稳定的时间）、<strong>保持时间</strong> $t_h$（时钟沿到来之后数据必须保持稳定的时间）、<strong>传播延迟</strong> $t_{cp}$（时钟沿到输出变化的延迟）。如果违反建立时间或保持时间，触发器会进入<strong>亚稳态</strong>（输出在0和1之间振荡或处于中间电平），可能导致整个数字系统崩溃。在实际工程中，亚稳态是跨时钟域设计必须考虑的关键问题，通常通过两级或多级同步器来降低亚稳态传播的概率。</p>
+                    <div class="formula">SR锁存器: $Q_{next} = S + \overline{R}Q$（$SR=0$ 约束）<br>JK触发器: $Q_{next} = J\overline{Q} + \overline{K}Q$<br>D触发器: $Q_{next} = D$<br>T触发器: $Q_{next} = T \oplus Q$<br>时序约束: 数据必须在 $[t_{clk} - t_{su},\; t_{clk} + t_h]$ 窗口内保持稳定</div>
+                </div>
+            </div>
+
+            <!-- 6. 时序逻辑电路 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">6. 时序逻辑电路</div>
+                <div class="knowledge-body">
+                    <p>时序逻辑电路的输出不仅取决于当前输入，还取决于电路的"记忆"（当前状态），就像一个游戏机——你按同一个按钮，游戏的反应取决于当前处于哪个关卡。设计时序电路的标准流程是：①画出<strong>状态图</strong>（用圆圈表示状态、箭头表示转移）；②列出<strong>状态表</strong>（当前状态+输入→下一状态+输出）；③状态化简（合并等价状态）；④状态编码（分配二进制码）；⑤写出激励方程和输出方程；⑥用触发器和门电路实现。</p>
+                    <p><strong>计数器</strong>是最典型的时序电路。<strong>异步计数器</strong>（如异步二进制加法计数器）中每个触发器的时钟来自前一级的输出，结构简单但速度慢——进位需要逐级传播，高频时可能产生"毛刺"。<strong>同步计数器</strong>中所有触发器共用同一个时钟，通过组合逻辑预判各触发器的翻转条件，速度远快于异步计数器。模N计数器（如模6、模10）通过在计到特定值时强制清零或置数来改变计数范围。74HC161是经典的4位同步二进制计数器，支持同步预置和异步清零。</p>
+                    <p><strong>移位寄存器</strong>将触发器串行连接，每个时钟沿数据移一位。根据输入/输出方式分为四种：<strong>SISO</strong>（串入串出，用于延时）、<strong>SIPO</strong>（串入并出，用于串并转换）、<strong>PISO</strong>（并入串出，用于并串转换）、<strong>PIPO</strong>（并入并出，用于数据暂存）。移位寄存器还可构成<strong>环形计数器</strong>（首尾相连，循环移位）和<strong>扭环计数器</strong>（Johnson计数器，$2n$个状态），用于产生时序控制信号。</p>
+                    <p>时序电路分为<strong>Mealy型</strong>（输出取决于当前状态和输入）和<strong>Moore型</strong>（输出仅取决于当前状态）。Mealy型响应更快但可能产生毛刺，Moore型输出更稳定但需要更多状态。选择哪种取决于具体应用：高速通信常用Mealy型，而安全关键系统（如交通灯控制器）通常选择Moore型。</p>
+                    <div class="formula">状态方程: $\mathbf{Q}^{n+1} = f(\mathbf{Q}^n, \mathbf{X})$<br>Mealy输出: $Y = g(\mathbf{Q}^n, \mathbf{X})$（输出依赖输入和状态）<br>Moore输出: $Y = g(\mathbf{Q}^n)$（输出仅依赖状态）<br>模N计数: 计数范围 $0 \to N-1$，共 $N$ 个状态<br>移位寄存器: $Q_i^{n+1} = Q_{i-1}^n$（右移），$Q_0^{n+1} = D_{in}$</div>
+                </div>
+            </div>
+
+            <!-- 7. 脉冲波形的产生与整形 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">7. 脉冲波形的产生与整形</div>
+                <div class="knowledge-body">
+                    <p>数字系统需要时钟信号来协调各部分的工作节奏，还需要各种脉冲信号来定时、触发和控制。产生这些信号的核心器件是<strong>555定时器</strong>——这颗1972年诞生的芯片至今仍是世界上用量最大的集成电路之一，全世界每年消耗超过十亿片。555内部包含两个比较器、一个RS触发器和一个放电管，通过外部RC网络即可构建多种功能电路。</p>
+                    <p><strong>多谐振荡器</strong>（Astable）不需要外部触发就能自动产生方波。555构成的多谐振荡器通过RC充放电实现自激振荡：电容充电到 $\frac{2}{3}V_{CC}$ 时内部比较器翻转，放电到 $\frac{1}{3}V_{CC}$ 时再次翻转，周而复始。振荡周期 $T = 0.693(R_1 + 2R_2)C$，频率 $f = \dfrac{1.44}{(R_1+2R_2)C}$。调节 $R_2$ 可以改变占空比（高电平时间占周期的比例），加上二极管可实现50%占空比。</p>
+                    <p><strong>单稳态触发器</strong>（Monostable）只有一个稳定状态，需要外部触发脉冲才能进入暂态，经过一段固定时间后自动返回稳态。暂态持续时间 $t_w = 1.1RC$。应用包括：定时（如楼道灯延时开关）、脉冲展宽（将窄脉冲变为宽脉冲）、脉冲延时等。<strong>施密特触发器</strong>具有滞回特性（正向阈值 $V_{T+}$ 和反向阈值 $V_{T-}$ 不同），可以将缓慢变化的模拟信号整形成干净的数字脉冲，有效消除输入信号上的噪声干扰。滞回电压 $V_H = V_{T+} - V_{T-}$ 越大，抗噪声能力越强。波形产生电路广泛应用于时钟源、LED闪烁、蜂鸣器驱动、电机调速（PWM）等场景。</p>
+                    <div class="formula">555多谐振荡: $T = 0.693(R_1+2R_2)C,\quad f = \dfrac{1.44}{(R_1+2R_2)C}$<br>占空比: $D = \dfrac{R_1+R_2}{R_1+2R_2} \times 100\%$<br>555单稳态: $t_w = 1.1RC$<br>施密特触发器: $V_{T+} = \dfrac{2}{3}V_{CC},\quad V_{T-} = \dfrac{1}{3}V_{CC}$（典型值）</div>
+                </div>
+            </div>
+
+            <!-- 8. 半导体存储器与PLD -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">8. 半导体存储器与PLD</div>
+                <div class="knowledge-body">
+                    <p>存储器是数字系统的"记忆仓库"。按功能分为<strong>RAM</strong>（随机存取存储器，断电丢失）和<strong>ROM</strong>（只读存储器，断电保持）。SRAM（静态RAM）用6个晶体管构成一个存储单元（两个交叉耦合反相器加两个访问管），速度快（访问时间通常小于10ns）但面积大，常做CPU高速缓存（L1/L2 Cache）。DRAM（动态RAM）只需1个晶体管加1个电容，密度高但电容会漏电需要周期性刷新（通常每64ms刷新一次），成本低，是计算机主内存的主流方案。</p>
+                    <p><strong>ROM</strong>在出厂时就固化了数据，无法修改。<strong>PROM</strong>（可编程ROM）允许用户通过烧断熔丝的方式一次性写入。<strong>EPROM</strong>（可擦除可编程ROM）用紫外线照射整片擦除，可反复使用。<strong>EEPROM</strong>（电可擦除可编程ROM）可以按字节电擦写，无需紫外线灯，方便得多。现代的<strong>Flash存储器</strong>（闪存）是EEPROM的改进版，支持块擦除，是U盘、SSD、手机存储的核心技术。</p>
+                    <p><strong>可编程逻辑器件</strong>（PLD）允许用户自定义数字电路功能。<strong>PAL</strong>（可编程阵列逻辑）有固定的或阵列和可编程的与阵列；<strong>GAL</strong>（通用阵列逻辑）增加了输出逻辑宏单元（OLMC），可配置为组合或时序输出，支持多次擦写。<strong>CPLD</strong>（复杂可编程逻辑器件）由多个PAL-like块通过可编程互连矩阵组合，适合中等规模逻辑。现场可编程门阵列<strong>FPGA</strong>由大量可配置逻辑块（CLB）、可编程互连和I/O块构成，每个CLB包含查找表（LUT）和触发器，可以实现从简单逻辑到复杂处理器的任何功能。用硬件描述语言<strong>Verilog</strong>或<strong>VHDL</strong>描述电路行为，通过综合工具自动生成门级网表并下载到芯片中，这是现代数字系统设计的标准流程。</p>
+                    <div class="formula">SRAM单元: 6T（6晶体管），$T_{access} < 10\,\text{ns}$<br>DRAM刷新周期: 通常 $64\,\text{ms}$<br>FPGA核心: CLB = LUT + 触发器<br>Verilog示例: <code>always @(posedge clk) q &lt;= d;</code>（D触发器）</div>
+                </div>
+            </div>
+
+            <!-- 9. 数模与模数转换 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">9. 数模与模数转换</div>
+                <div class="knowledge-body">
+                    <p>真实世界的信号（温度、声音、压力）是连续变化的模拟量，而数字系统只能处理离散的数字量。<strong>DAC</strong>（数模转换器）将数字量转为模拟量（如音频播放器将数字音乐转为扬声器的模拟信号），<strong>ADC</strong>（模数转换器）将模拟量转为数字量（如手机麦克风将声音转为数字音频）。DAC和ADC是连接模拟世界与数字世界的桥梁。</p>
+                    <p>DAC的常见结构：<strong>加权电阻型</strong>用阻值按 $R, 2R, 4R, 8R$ 递增的电阻网络，各支路电流按二进制权重分配，通过运放求和得到输出电压 $V_{out} = -V_{ref} \cdot \dfrac{R_f}{R} \cdot D$（$D$ 为数字量）。缺点是高位和低位电阻值相差太大，制造精度难以保证。<strong>R-2R梯形电阻型</strong>只用 $R$ 和 $2R$ 两种阻值的电阻，通过梯形网络的分流原理实现二进制权重，制造更容易，是大多数集成DAC的首选结构。</p>
+                    <p>ADC的常见架构各有特点：<strong>并行比较型（Flash）ADC</strong>用 $2^n - 1$ 个比较器同时比较，速度最快（一个时钟周期出结果），但硬件量随位数指数增长，通常只用于低分辨率高速场景（如8位、采样率超过1GHz）。<strong>逐次逼近型（SAR）ADC</strong>用二分法逐位确定数字输出，$n$ 位转换需要 $n$ 个时钟周期，速度和精度平衡好，是应用最广的ADC类型（如8位到18位，采样率从几十kSPS到几MSPS）。<strong>双积分型ADC</strong>先对输入信号积分固定时间，再对基准电压反向积分至零，计数器记录反向积分时间即得数字输出。精度高（可达20位以上）、抗干扰强（积分过程平均掉高频噪声），但速度慢，典型应用于数字万用表。</p>
+                    <p><strong>Sigma-Delta（$\Sigma\Delta$）ADC</strong>采用过采样和噪声整形技术：以远高于奈奎斯特频率的速率采样（如64倍过采样），通过1位量化器和数字抽取滤波器实现高分辨率（可达24位），广泛应用于音频和精密测量。<strong>分辨率</strong>指ADC能区分的最小模拟变化量 $Q = \dfrac{V_{ref}}{2^n}$；<strong>量化误差</strong>最大为 $\pm \dfrac{Q}{2}$。<strong>奈奎斯特采样定理</strong>要求采样频率 $f_s \geq 2f_{max}$，否则会产生频谱混叠——就像电影中快速旋转的车轮看起来在倒转（频闪效应），采样不够快会导致高频信号"伪装"成低频信号。</p>
+                    <div class="formula">DAC输出: $V_{out} = V_{ref} \times \dfrac{D}{2^n}$（$D$ 为 $n$ 位数字量）<br>R-2R DAC: $V_{out} = -V_{ref} \times \dfrac{R_f}{R} \times \sum_{k=0}^{n-1} d_k \cdot 2^{k-n}$<br>ADC分辨率: $Q = \dfrac{V_{ref}}{2^n}$（如10位ADC，$V_{ref}=5\text{V}$，则 $Q \approx 4.88\,\text{mV}$）<br>量化误差: $|e_q| \leq \dfrac{Q}{2}$<br>奈奎斯特定理: $f_s \geq 2f_{max}$（采样频率必须大于等于信号最高频率的2倍）</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ===== 自动控制原理 ===== -->
+        <div class="sub-section">
+            <div class="sub-title">自动控制原理</div>
+
+            <!-- 1. 自动控制的基本概念 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">1. 自动控制的基本概念</div>
+                <div class="knowledge-body">
+                    <p>自动控制的核心思想是让系统在无人直接干预的情况下，按照预期目标自动运行。生活中最直观的例子是家里的空调恒温系统：你设定目标温度26°C，空调内部的温度传感器持续检测室温，当室温高于26°C时启动制冷，低于26°C时停止或制热——系统通过不断"测量-比较-调整"来维持温度恒定。这就是典型的<strong>闭环控制（反馈控制）</strong>，其本质是将输出量的一部分反馈回来与输入（参考信号）进行比较，利用偏差信号驱动控制器纠正偏差。</p>
+                    <p>与之相对的是<strong>开环控制</strong>：系统不检测输出，也不进行反馈修正。例如定时洗衣机按照预设程序运行，不论衣服是否洗干净都按时停止。开环系统结构简单、成本低，但抗干扰能力差——如果衣服特别脏，预设时间可能不够；如果水压变化影响进水量，洗涤效果也会波动。闭环控制虽然结构复杂、成本较高，但能自动补偿扰动和参数变化，是现代工程控制的主流方案。</p>
+                    <p>一个完整的闭环控制系统由以下基本环节组成：<strong>参考输入</strong> $r(t)$（期望值，如设定温度）、<strong>控制器</strong>（根据偏差产生控制信号，如PID控制器）、<strong>执行机构/被控对象</strong> $G(s)$（实际工作的设备，如压缩机和房间）、<strong>传感器/检测元件</strong> $H(s)$（测量输出量，如温度传感器）。系统的<strong>性能要求</strong>可以归纳为三个方面：<strong>稳定性</strong>（系统受到扰动后能恢复平衡，这是最基本的前提）、<strong>准确性</strong>（稳态误差足够小，输出能精确跟踪输入）、<strong>快速性</strong>（响应速度够快，调节时间短）。工程实践中这三个指标往往相互矛盾——提高快速性可能导致超调增大甚至不稳定，需要在三者之间寻求平衡。</p>
+                    <div class="formula">闭环系统基本方程: $E(s)=R(s)-B(s)=R(s)-H(s)\cdot C(s)$<br>闭环传递函数: $\dfrac{C(s)}{R(s)}=\dfrac{G(s)}{1+G(s)H(s)}$<br>偏差传递函数: $\dfrac{E(s)}{R(s)}=\dfrac{1}{1+G(s)H(s)}$<br>单位反馈 ($H(s)=1$): $\dfrac{C(s)}{R(s)}=\dfrac{G(s)}{1+G(s)}$</div>
+                </div>
+            </div>
+
+            <!-- 2. 控制系统的数学模型 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">2. 控制系统的数学模型</div>
+                <div class="knowledge-body">
+                    <p>要分析和设计控制系统，首先必须用数学语言描述系统的输入-输出关系。建立数学模型的第一步通常是根据物理定律（牛顿定律、基尔霍夫定律、热力学定律等）列写<strong>微分方程</strong>。例如一个简单的RC低通滤波电路，输入电压 $v_i(t)$ 和输出电压 $v_o(t)$ 满足 $RC\dfrac{dv_o}{dt}+v_o=v_i$；一个弹簧-质量-阻尼系统满足 $m\dfrac{d^2x}{dt^2}+c\dfrac{dx}{dt}+kx=F(t)$。微分方程虽然是系统的精确描述，但直接用它分析复杂系统非常困难。</p>
+                    <p><strong>传递函数</strong>是控制理论中最核心的工具：在零初始条件下，系统输出的拉普拉斯变换与输入的拉普拉斯变换之比，即 $G(s)=\dfrac{C(s)}{R(s)}$。传递函数完全由系统本身的结构和参数决定，与输入信号无关。它的物理意义是：将时域中的微分方程转化为s域中的代数方程，把"微分"变成"乘以 $s$"，使分析大大简化。传递函数可以写成零极点形式 $G(s)=K\dfrac{(s-z_1)(s-z_2)\cdots}{(s-p_1)(s-p_2)\cdots}$，其中零点 $z_i$ 和极点 $p_i$ 直接决定了系统的动态特性。</p>
+                    <p>控制工程中常见的<strong>典型环节</strong>及其传递函数包括：<strong>比例环节</strong> $K$（无失真放大）、<strong>积分环节</strong> $\dfrac{1}{s}$（消除稳态误差但降低稳定性）、<strong>微分环节</strong> $s$（预测偏差变化趋势，提高响应速度）、<strong>惯性环节</strong> $\dfrac{1}{Ts+1}$（一阶滞后，如RC电路、热传导）、<strong>振荡环节</strong> $\dfrac{\omega_n^2}{s^2+2\zeta\omega_n s+\omega_n^2}$（二阶欠阻尼系统，如弹簧-质量系统）。实际系统通常是这些典型环节的组合，通过串联、并联和反馈连接构成复杂系统的传递函数。</p>
+                    <div class="formula">惯性环节: $G(s)=\dfrac{K}{Ts+1}$（时间常数 $T$，增益 $K$）<br>积分环节: $G(s)=\dfrac{1}{s}$（输出为输入的积分）<br>微分环节: $G(s)=s$（输出为输入的微分）<br>振荡环节: $G(s)=\dfrac{\omega_n^2}{s^2+2\zeta\omega_n s+\omega_n^2}$（$\zeta$ 阻尼比，$\omega_n$ 自然频率）<br>二阶系统特征方程: $s^2+2\zeta\omega_n s+\omega_n^2=0$，特征根 $s_{1,2}=-\zeta\omega_n\pm\omega_n\sqrt{\zeta^2-1}$</div>
+                </div>
+            </div>
+
+            <!-- 3. 框图化简与信号流图 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">3. 框图化简与信号流图</div>
+                <div class="knowledge-body">
+                    <p>当系统由多个环节组合而成时，用<strong>方框图（框图）</strong>来表示各环节之间的信号传递关系非常直观。每个方框代表一个传递函数，箭头表示信号流向，圆圈（求和点）表示信号的加减运算，分支点表示信号的复制分流。框图化简的目标是将复杂的多环系统化简为一个等效的单一传递函数。</p>
+                    <p>框图化简有三条基本法则：<strong>串联</strong>（前一个环节的输出接后一个的输入，等效传递函数为各环节之积 $G=G_1 G_2$）、<strong>并联</strong>（同一输入分别经过两个环节后求和，等效传递函数为各环节之和 $G=G_1+G_2$）、<strong>反馈连接</strong>（输出经反馈通道 $H$ 回到输入端与参考信号比较，等效传递函数 $G_{eq}=\dfrac{G}{1\pm GH}$，负反馈取"+"号，正反馈取"-"号）。化简时还需要掌握<strong>求和点的移动</strong>和<strong>分支点的移动</strong>规则——将求和点越过方框前移或后移时需要补偿传递函数，反之亦然。</p>
+                    <p><strong>信号流图</strong>是框图的另一种等价表示，用节点（变量）和有向支路（传递函数/增益）来描述系统。信号流图最大的优势是可以用<strong>梅森增益公式</strong>直接写出任意两个节点间的等效传递函数，无需逐步化简：$T=\dfrac{1}{\Delta}\sum_{k}P_k\Delta_k$，其中 $P_k$ 是第 $k$ 条前向通路的增益，$\Delta$ 是图的特征行列式，$\Delta_k$ 是去掉第 $k$ 条前向通路后子图的特征行列式。梅森公式对于多回路复杂系统的分析尤为高效，避免了反复化简框图的繁琐过程。</p>
+                    <div class="formula">串联: $G=G_1\cdot G_2$（传递函数相乘）<br>并联: $G=G_1+G_2$（传递函数相加）<br>反馈: $G_{eq}=\dfrac{G}{1+GH}$（负反馈）<br>梅森公式: $T=\dfrac{1}{\Delta}\displaystyle\sum_{k}P_k\Delta_k$<br>$\Delta=1-\sum L_i+\sum L_i L_j-\sum L_i L_j L_k+\cdots$（$L_i$ 为各回路增益）</div>
+                </div>
+            </div>
+
+            <!-- 4. 时域分析与性能指标 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">4. 时域分析与性能指标</div>
+                <div class="knowledge-body">
+                    <p>时域分析是指在已知系统传递函数的前提下，分析系统对特定输入信号（通常是单位阶跃信号）的时间响应。阶跃响应是工程中最重要的测试信号，因为它能同时反映系统的稳定性、快速性和准确性——就像给系统一个突然的"推力"，观察它如何反应。</p>
+                    <p><strong>一阶系统</strong>的阶跃响应为 $c(t)=1-e^{-t/T}$，响应单调上升没有超调，时间常数 $T$ 决定了响应速度：经过一个 $T$ 达到63.2%，经过 $3T$ 达到95%，经过 $4T$ 达到98%。<strong>二阶系统</strong>的响应更为丰富，根据阻尼比 $\zeta$ 的不同呈不同形态：$\zeta>1$ 过阻尼（缓慢上升无振荡），$0<\zeta<1$ 欠阻尼（衰减振荡，最常见），$\zeta=0$ 等幅振荡（临界稳定），$\zeta=1$ 临界阻尼。欠阻尼二阶系统的阶跃响应为 $c(t)=1-\dfrac{e^{-\zeta\omega_n t}}{\sqrt{1-\zeta^2}}\sin(\omega_d t+\varphi)$，其中 $\omega_d=\omega_n\sqrt{1-\zeta^2}$ 为阻尼振荡频率。</p>
+                    <p>衡量系统时域性能的关键指标包括：<strong>上升时间</strong> $t_r$（响应从10%上升到90%或0到100%的时间，反映快速性）、<strong>超调量</strong> $\sigma\%=e^{-\zeta\pi/\sqrt{1-\zeta^2}}\times100\%$（响应超过稳态值的最大百分比，反映相对稳定性）、<strong>调节时间</strong> $t_s\approx\dfrac{3\sim4}{\zeta\omega_n}$（响应进入并保持在稳态值±2%或±5%误差带内的时间，反映综合快速性）、<strong>稳态误差</strong> $e_{ss}$（稳态时输出与期望值之差，反映准确性）。对于标准二阶系统，超调量仅由阻尼比 $\zeta$ 决定，而调节时间由 $\zeta\omega_n$（极点实部的绝对值）决定。</p>
+                    <div class="formula">二阶系统传递函数: $G(s)=\dfrac{\omega_n^2}{s^2+2\zeta\omega_n s+\omega_n^2}$<br>超调量: $\sigma\%=e^{-\zeta\pi/\sqrt{1-\zeta^2}}\times100\%$（仅取决于 $\zeta$）<br>上升时间: $t_r=\dfrac{\pi-\beta}{\omega_d},\quad \beta=\arctan\dfrac{\sqrt{1-\zeta^2}}{\zeta}$<br>调节时间: $t_s=\dfrac{3}{\zeta\omega_n}$(2%准则) 或 $t_s=\dfrac{4}{\zeta\omega_n}$(5%准则)<br>阻尼振荡频率: $\omega_d=\omega_n\sqrt{1-\zeta^2}$</div>
+                </div>
+            </div>
+
+            <!-- 5. 稳定性分析 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">5. 稳定性分析</div>
+                <div class="knowledge-body">
+                    <p>稳定性是控制系统最基本、最重要的性能指标——一个不稳定的系统不仅无法完成控制任务，还可能造成设备损坏甚至安全事故（如飞机自动驾驶系统的失稳可能导致坠机）。<strong>BIBO稳定性</strong>（有界输入有界输出稳定性）的定义是：对于任何有界输入，系统的输出也必须有界。从传递函数的角度看，系统稳定的充要条件是所有闭环极点都位于s平面的<strong>左半平面</strong>（实部为负），因为左半平面的极点对应的时域响应是衰减的指数函数或衰减振荡，而右半平面的极点会导致响应发散。</p>
+                    <p>对于低阶系统（三阶以下），可以直接求解特征方程的根来判断稳定性。但对于高阶系统，求根非常困难。<strong>劳斯-赫尔维茨（Routh-Hurwitz）稳定判据</strong>提供了一种无需直接求根的方法：根据特征方程的系数构造<strong>劳斯阵列</strong>，然后检查第一列元素的符号。如果第一列所有元素同号（全为正或全为负），则所有极点都在左半平面，系统稳定；如果第一列出现符号变化，则不稳定，符号变化的次数等于右半平面极点的个数。</p>
+                    <p>劳斯阵列的构造方法：设特征方程为 $a_n s^n+a_{n-1}s^{n-1}+\cdots+a_1 s+a_0=0$，第一行填偶数次项系数 $a_n, a_{n-2}, a_{n-4},\cdots$，第二行填奇数次项系数 $a_{n-1}, a_{n-3}, a_{n-5},\cdots$，后续各行按交叉相除规则递推。劳斯判据还能确定系统的<strong>稳定裕度</strong>——通过令 $s=z-\alpha$（$\alpha>0$）进行变量替换，可以判断特征方程是否有根在 $z=-\alpha$ 的右侧，从而了解极点距离虚轴的最近距离。</p>
+                    <div class="formula">稳定的充要条件: 闭环极点全部位于s左半平面，即 $\text{Re}(p_k)<0,\;\forall k$<br>劳斯阵列第一列: $\begin{array}{c|ccc} s^n & a_n & a_{n-2} & a_{n-4} \\ s^{n-1} & a_{n-1} & a_{n-3} & a_{n-5} \\ s^{n-2} & b_1 & b_2 & \cdots \\ s^{n-3} & c_1 & c_2 & \cdots \\ \vdots & & & \end{array}$<br>$b_1=\dfrac{a_{n-1}a_{n-2}-a_n a_{n-3}}{a_{n-1}}$（交叉相除规则）<br>判据: 第一列全部同号 $\Rightarrow$ 稳定；符号变化次数 = 右半平面极点个数</div>
+                </div>
+            </div>
+
+            <!-- 6. 根轨迹法 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">6. 根轨迹法</div>
+                <div class="knowledge-body">
+                    <p><strong>根轨迹法</strong>是分析和设计控制系统的强大图形化工具。其核心思想是：当开环增益 $K$ 从0连续变化到无穷大时，闭环特征方程的根（即闭环极点）在s平面上描绘出的轨迹。通过观察根轨迹，可以直观地了解增益变化对系统稳定性和动态性能的影响，无需逐个求解特征方程。</p>
+                    <p>绘制根轨迹需要掌握以下基本规则：①<strong>起点和终点</strong>：根轨迹起于开环极点（$K=0$），止于开环零点（$K=\infty$），如果零点个数少于极点个数，多余的分支趋向无穷远；②<strong>分支数</strong>等于开环极点个数（也是特征方程的阶数）；③<strong>实轴上的根轨迹</strong>位于实轴上其右侧开环零极点总数为奇数的区段；④<strong>渐近线</strong>：趋向无穷远的分支沿渐近线方向延伸，渐近线与实轴的交角为 $\varphi_a=\dfrac{(2k+1)\pi}{n-m}$（$n$ 为极点数，$m$ 为零点数），交点为 $\sigma_a=\dfrac{\sum p_i-\sum z_j}{n-m}$；⑤<strong>分离点（会合点）</strong>：根轨迹离开或进入实轴的点，满足 $\sum\dfrac{1}{\sigma-p_i}=\sum\dfrac{1}{\sigma-z_j}$；⑥<strong>出射角和入射角</strong>：复数极点处根轨迹的出发角度和复数零点处的到达角度，通过相角条件计算。</p>
+                    <p>根轨迹与系统性能的对应关系非常直观：根轨迹在左半平面越深，系统越稳定且响应越快；根轨迹穿越虚轴时对应的 $K$ 值即为临界增益；根轨迹靠近虚轴的部分对应低阻尼比（大超调）。设计时，可以通过选择合适的 $K$ 值使闭环极点落在期望的位置，或者通过增加零极点来改变根轨迹的形状（即校正设计）。</p>
+                    <div class="formula">特征方程: $1+KG(s)H(s)=0 \;\Leftrightarrow\; \angle G(s)H(s)=(2k+1)\pi$（相角条件）<br>幅值条件: $|G(s)H(s)|=\dfrac{1}{K}$（确定轨迹上各点对应的 $K$ 值）<br>渐近线交角: $\varphi_a=\dfrac{(2k+1)\pi}{n-m},\quad k=0,1,\cdots,n-m-1$<br>渐近线交点: $\sigma_a=\dfrac{\displaystyle\sum_{i=1}^{n}p_i-\sum_{j=1}^{m}z_j}{n-m}$</div>
+                </div>
+            </div>
+
+            <!-- 7. 频域分析 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">7. 频域分析</div>
+                <div class="knowledge-body">
+                    <p>频域分析是控制工程中与根轨迹法并列的另一大支柱方法。它不直接研究系统对阶跃等时域信号的响应，而是研究系统对<strong>正弦信号</strong>的稳态响应——当输入为 $r(t)=A\sin\omega t$ 时，线性系统的稳态输出也是同频率的正弦信号 $c(t)=A|G(j\omega)|\sin[\omega t+\angle G(j\omega)]$，只是幅值被 $|G(j\omega)|$ 缩放，相位被 $\angle G(j\omega)$ 移动。频率响应 $G(j\omega)$ 就是传递函数中令 $s=j\omega$ 得到的复数函数，它的模代表增益，辐角代表相移。</p>
+                    <p><strong>Bode图</strong>是频率响应的图形表示，由两部分组成：幅频特性（$\lg|G(j\omega)|$ 对 $\lg\omega$，单位dB）和相频特性（$\angle G(j\omega)$ 对 $\lg\omega$，单位度）。Bode图的妙处在于：串联环节的Bode图等于各环节Bode图之和，使得复杂系统的频率特性可以通过简单叠加获得。典型环节的Bode图各具特色：比例环节是一条水平线；积分环节的幅频斜率为-20dB/dec（每十倍频下降20dB），相位恒为-90°；微分环节反之；惯性环节在转折频率 $\omega=1/T$ 处幅频开始以-20dB/dec下降，相位从0°趋向-90°；二阶振荡环节在 $\omega_n$ 附近可能出现谐振峰。</p>
+                    <p><strong>Nyquist图</strong>（极坐标图）将频率响应画在复平面上，横轴为实部、纵轴为虚部，频率 $\omega$ 作为参数。Nyquist判据是判断闭环稳定性的重要工具：开环传递函数的Nyquist曲线绕 $(-1,j0)$ 点的圈数与系统不稳定极点数之间的关系决定了闭环系统的稳定性。<strong>增益裕度</strong> $GM$（相位为-180°时增益距离0dB的余量）和<strong>相位裕度</strong> $PM$（增益为0dB时相位距离-180°的余量）是频域中衡量稳定性的两个核心指标，工程上通常要求 $PM\geq30°\sim45°$，$GM\geq6\text{dB}$。</p>
+                    <div class="formula">频率响应: $G(j\omega)=|G(j\omega)|e^{j\angle G(j\omega)}$<br>Bode图: 幅频 $20\lg|G(j\omega)|$ (dB)，相频 $\angle G(j\omega)$ (°)<br>增益裕度: $GM=-20\lg|G(j\omega_{pc})|$（$\omega_{pc}$ 为相位穿越频率，$\angle G(j\omega_{pc})=-180°$）<br>相位裕度: $PM=180°+\angle G(j\omega_{gc})$（$\omega_{gc}$ 为增益穿越频率，$|G(j\omega_{gc})|=1$）<br>稳定条件: $GM>0$ dB 且 $PM>0°$</div>
+                </div>
+            </div>
+
+            <!-- 8. 系统校正 -->
+            <div class="knowledge-item" onclick="toggleKnowledge(this)">
+                <div class="knowledge-header">8. 系统校正</div>
+                <div class="knowledge-body">
+                    <p>当原始系统（未校正系统）的性能不满足设计指标时，需要在系统中加入<strong>校正装置（补偿器）</strong>来改善系统性能。校正的本质是修改系统的开环传递函数，使闭环系统的极点分布或频率特性达到期望的形状。根据校正装置与前向通道的连接方式，分为<strong>串联校正</strong>（最常用）、反馈校正和前馈校正。</p>
+                    <p>三种基本的串联校正方式各有特点：<strong>超前校正</strong> $G_c(s)=\alpha\dfrac{Ts+1}{\alpha Ts+1}$（$0<\alpha<1$）提供正的相位超前角，可以增大相位裕度、提高系统快速性和稳定性，但会放大高频噪声，适用于需要提高响应速度和稳定裕度的场合。<strong>滞后校正</strong> $G_c(s)=\beta\dfrac{Ts+1}{\beta Ts+1}$（$\beta>1$）提供负的相位滞后，通过降低中高频增益来增大相位裕度，同时提高低频增益以减小稳态误差，但会降低系统带宽和响应速度，适用于需要提高稳态精度的场合。<strong>超前-滞后校正</strong>综合了两者的优点，既能改善暂态性能又能提高稳态精度。</p>
+                    <p><strong>PID控制器</strong>是工业控制中应用最广泛的校正方式，其传递函数为 $G_c(s)=K_p+\dfrac{K_i}{s}+K_d s$。<strong>P（比例）项</strong>根据当前偏差产生控制作用，增大 $K_p$ 可以减小稳态误差、加快响应，但过大会导致超调增大甚至不稳定；<strong>I（积分）项</strong>对偏差进行时间积分，能彻底消除稳态误差（使系统型别提高一级），但会引入额外的相位滞后，降低稳定性；<strong>D（微分）项</strong>反映偏差的变化趋势，具有"预见性"，能增加阻尼、抑制超调、改善动态性能，但对噪声敏感。实际工程中，PID参数整定的经典方法是<strong>齐格勒-尼科尔斯（Ziegler-Nichols）法</strong>：先令 $K_i=K_d=0$，逐渐增大 $K_p$ 直到系统产生等幅振荡，记录此时的临界增益 $K_u$ 和振荡周期 $T_u$，然后按经验公式计算PID参数。</p>
+                    <div class="formula">PID传递函数: $G_c(s)=K_p+\dfrac{K_i}{s}+K_d s=K_p\left(1+\dfrac{1}{T_i s}+T_d s\right)$<br>超前校正: $G_c(s)=\alpha\dfrac{Ts+1}{\alpha Ts+1}$（$\alpha<1$，最大超前角 $\phi_m=\arcsin\dfrac{1-\alpha}{1+\alpha}$）<br>滞后校正: $G_c(s)=\beta\dfrac{Ts+1}{\beta Ts+1}$（$\beta>1$）<br>Ziegler-Nichols法: $K_p=0.6K_u,\;T_i=0.5T_u,\;T_d=0.125T_u$（PID参数整定经验公式）</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 资源链接 ==================== -->
+    <div id="resources" class="section">
+        <div class="section-title">资源链接</div>
+
+        <div class="resource-group-title"><span class="icon">🎬</span> 视频课程</div>
+        <div class="card-grid">
+            <a class="card" href="https://www.bilibili.com/video/BV1ft411c7mE" target="_blank" rel="noopener">
+                <h3>电路原理 — 清华大学 于歆杰</h3>
+                <p>清华大学电机系于歆杰教授主讲，内容涵盖电路基本定律、一阶二阶电路、正弦稳态分析、互感与变压器、频率响应等核心章节，讲解深入浅出，B站播放量超千万。</p>
+                <span class="tag">Bilibili · 227集</span>
+            </a>
+            <a class="card" href="https://www.bilibili.com/video/BV1iW411d7xR" target="_blank" rel="noopener">
+                <h3>电路分析基础 — 西安电子科技大学</h3>
+                <p>西电国家级精品课程，系统讲授电路分析方法，包括节点法、网孔法、戴维南定理、拉普拉斯变换法等，配套实验演示，适合打牢电路分析基本功。</p>
+                <span class="tag">Bilibili · 西电精品课</span>
+            </a>
+            <a class="card" href="https://www.bilibili.com/video/BV1EW411u7th" target="_blank" rel="noopener">
+                <h3>高等数学 — 宋浩老师</h3>
+                <p>宋浩老师的高数课程以风趣幽默著称，从极限、导数、积分到级数、微分方程，讲解清晰，配合大量例题，是无数工科学生的高数启蒙课。</p>
+                <span class="tag">Bilibili · 全集精讲</span>
+            </a>
+            <a class="card" href="https://www.bilibili.com/video/BV1Yx411d7e1" target="_blank" rel="noopener">
+                <h3>复变函数 — 西北工业大学</h3>
+                <p>西北工业大学精品课程，覆盖复数运算、解析函数、柯西积分、留数定理、保角映射等内容，是信号与系统、电磁场等后续课程的数学基础。</p>
+                <span class="tag">Bilibili · 西工大精品课</span>
+            </a>
+        </div>
+
+        <div class="resource-group-title"><span class="icon">📖</span> 在线教材</div>
+        <div class="card-grid">
+            <a class="card" href="https://www.allaboutcircuits.com/textbook/" target="_blank" rel="noopener">
+                <h3>All About Circuits</h3>
+                <p>全英文免费电路教材，从基础电阻电路到LC振荡器，每章配有丰富的电路图和交互实验，适合想同时提升英语和技术能力的同学。</p>
+                <span class="tag">英文 · 免费</span>
+            </a>
+            <a class="card" href="https://www.khanacademy.org/science/electrical-engineering" target="_blank" rel="noopener">
+                <h3>可汗学院 — 电气工程</h3>
+                <p>从最基础的电压、电流概念讲起，涵盖电路学、信号处理、电磁学等模块，配有练习题和进度追踪，零基础入门友好。</p>
+                <span class="tag">英文 · 交互学习</span>
+            </a>
+            <a class="card" href="https://www.icourse163.org/course/THU-1001891005" target="_blank" rel="noopener">
+                <h3>中国大学MOOC — 电路原理</h3>
+                <p>清华大学电路原理MOOC，与B站视频内容一致但提供完整的学习路径、单元测验和讨论区，可获得电子证书，适合系统性学习。</p>
+                <span class="tag">中文 · 有证书</span>
+            </a>
+            <a class="card" href="https://www.elecfans.com/" target="_blank" rel="noopener">
+                <h3>电子发烧友</h3>
+                <p>国内最大的电子工程师社区之一，提供丰富的技术文章、电路图库、 datasheet 查找、开发板评测，是理论联系实际的好去处。</p>
+                <span class="tag">中文 · 社区</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- ==================== 仿真实验室 ==================== -->
+    <div id="simulation" class="section">
+        <div class="section-title">仿真实验室</div>
+
+        <div class="tab-container">
+            <div class="tab-header">
+                <button class="tab-btn active" onclick="switchSimTab(0)">⚡ CircuitJS 电路模拟器</button>
+                <button class="tab-btn" onclick="switchSimTab(1)">📐 GeoGebra 复数可视化</button>
+            </div>
+            <div class="tab-panel active">
+                <p>💡 可点击「文件 → 打开示例」浏览预置电路，或自行搭建电路进行仿真。支持电压/电流波形实时显示。</p>
+                <iframe src="https://lushprojects.com/circuitjs/circuitjs.html?lang=zh" height="500" loading="lazy" title="CircuitJS"></iframe>
+            </div>
+            <div class="tab-panel">
+                <p>💡 拖动复平面上的点，观察复数乘法的几何意义——模相乘、角度相加。</p>
+                <iframe src="https://www.geogebra.org/classic/tz5x6vga?embed" height="500" loading="lazy" title="GeoGebra"></iframe>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Back to top -->
+<button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<div class="footer">
+    电气工程学习平台 · 仅供个人学习使用 · 2026
+</div>
+
+<script>
+    // Navigation
+    function switchTab(id) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-links button').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        const labels = { courses: '📚 课程知识', resources: '🔗 资源链接', simulation: '🔬 仿真实验室' };
+        document.querySelectorAll('.nav-links button').forEach(b => {
+            if (b.textContent === labels[id]) b.classList.add('active');
+        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Accordion
+    function toggleKnowledge(el) {
+        el.classList.toggle('open');
+    }
+
+    // Simulation tabs
+    function switchSimTab(idx) {
+        document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
+        document.querySelectorAll('.tab-panel').forEach((p, i) => p.classList.toggle('active', i === idx));
+    }
+
+    // Back to top visibility
+    window.addEventListener('scroll', () => {
+        document.getElementById('backToTop').classList.toggle('visible', window.scrollY > 300);
+    });
+</script>
+
+</body>
+</html>
