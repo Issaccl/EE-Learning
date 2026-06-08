@@ -98,9 +98,6 @@ footer { display: none !important; }
     font-family: 'Inter', monospace;
 }
 
-/* ── Cusdis ── */
-#cusdis_thread textarea { border: 1px solid #e2e8f0 !important; border-radius: 6px !important; }
-#cusdis_thread button { background: #3b82f6 !important; color: #fff !important; border: none !important; border-radius: 6px !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -108,44 +105,43 @@ footer { display: none !important; }
 def _clean_latex(text: str) -> str:
     """将 LaTeX 公式转为可读纯文本"""
     import re
-    # 替换常见 LaTeX 命令
-    replacements = [
-        (r'\\frac\{([^}]+)\}\{([^}]+)\}', r'(\1)/(\2)'),
-        (r'\\sqrt\{([^}]+)\}', r'√(\1)'),
-        (r'\\sum', 'Σ'), (r'\\prod', 'Π'), (r'\\int', '∫'),
-        (r'\\infty', '∞'), (r'\\pi', 'π'), (r'\\omega', 'ω'),
-        (r'\\zeta', 'ζ'), (r'\\alpha', 'α'), (r'\\beta', 'β'),
-        (r'\\gamma', 'γ'), (r'\\delta', 'δ'), (r'\\theta', 'θ'),
-        (r'\\phi', 'φ'), (r'\\sigma', 'σ'), (r'\\mu', 'μ'),
-        (r'\\tau', 'τ'), (r'\\lambda', 'λ'), (r'\\Delta', 'Δ'),
-        (r'\\angle', '∠'), (r'\\circ', '°'), (r'\\cdot', '·'),
-        (r'\\times', '×'), (r'\\pm', '±'), (r'\\mp', '∓'),
-        (r'\\leq', '≤'), (r'\\geq', '≥'), (r'\\neq', '≠'),
-        (r'\\approx', '≈'), (r'\\rightarrow', '→'), (r'\\leftarrow', '←'),
-        (r'\\Rightarrow', '⇒'), (r'\\Leftarrow', '⇐'),
-        (r'\\leftrightarrow', '↔'),
-        (r'\\cdots', '⋯'), (r'\\ldots', '…'),
-        (r'\\overline\{([^}]+)\}', r'̄\1'),  # 上划线
-        (r'\\dot\{([^}]+)\)', r'·\1'),
-        (r'\\mathbf\{([^}]+)\}', r'\1'),
-        (r'\\mathcal\{L\}', 'ℒ'),
-        (r'\\text\{([^}]+)\}', r'\1'),
-        (r'\\mathrm\{([^}]+)\}', r'\1'),
-        (r'\\lim', 'lim'), (r'\\log', 'log'), (r'\\lg', 'lg'),
-        (r'\\sin', 'sin'), (r'\\cos', 'cos'), (r'\\tan', 'tan'),
-        (r'\\exp', 'exp'),
-        (r'\\oint', '∮'),
-        (r'\\left\(', '('), (r'\\right\)', ')'),
-        (r'\\left\[', '['), (r'\\right\]', ']'),
-        (r'\\{', '{'), (r'\\}', '}'),
-    ]
-    for pat, repl in replacements:
-        text = re.sub(pat, repl, text)
-    # 去掉 $...$ 分隔符
+    # \frac{a}{b} → (a)/(b)
+    text = re.sub(r'\\frac\{([^}]+)\}\{([^}]+)\}', r'(\1)/(\2)', text)
+    text = re.sub(r'\\sqrt\{([^}]+)\}', r'√(\1)', text)
+    # 希腊字母和数学符号
+    for s, r in [('\\sum','Σ'),('\\prod','Π'),('\\int','∫'),('\\oint','∮'),
+        ('\\infty','∞'),('\\pi','π'),('\\omega','ω'),('\\zeta','ζ'),
+        ('\\alpha','α'),('\\beta','β'),('\\gamma','γ'),('\\delta','δ'),
+        ('\\theta','θ'),('\\phi','φ'),('\\sigma','σ'),('\\mu','μ'),
+        ('\\tau','τ'),('\\lambda','λ'),('\\Delta','Δ'),
+        ('\\angle','∠'),('\\circ','°'),('\\cdot','·'),('\\times','×'),
+        ('\\pm','±'),('\\leq','≤'),('\\geq','≥'),('\\neq','≠'),
+        ('\\approx','≈'),('\\rightarrow','→'),('\\Rightarrow','⇒'),
+        ('\\cdots','⋯'),('\\ldots','…'),('\\mathcal{L}','ℒ'),
+        ('\\sin','sin'),('\\cos','cos'),('\\tan','tan'),
+        ('\\log','log'),('\\lim','lim'),('\\lg','lg')]:
+        text = text.replace(s, r)
+    # \text{x} \mathrm{x} \mathbf{x} → x
+    text = re.sub(r'\\(?:text|mathrm|mathbf)\{([^}]+)\}', r'\\1', text)
+    # \dot{x} → ·x
+    text = re.sub(r'\\dot\{([^}]+)\}', r'·\\1', text)
+    # 括号
+    text = text.replace('\\left(', '(').replace('\\right)', ')')
+    text = text.replace('\\left[', '[').replace('\\right]', ']')
+    text = text.replace('\\{', '{').replace('\\}', '}')
+    # 去掉 $
     text = text.replace('$', '')
-    # 清理残余反斜杠
+    # 清理反斜杠
     text = text.replace('\\', '')
-    # 清理 &emsp; &nbsp;
+    # _{abc} → 下标  ^{abc} → 上标
+    sub_map = str.maketrans('0123456789', '₀₁₂₃₄₅₆₇₈₉')
+    sup_map = str.maketrans('0123456789+-=()nikj', '⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ⁿⁱᵏʲ')
+    text = re.sub(r'_\{([^}]+)\}', lambda m: m.group(1).translate(sub_map), text)
+    text = re.sub(r'\^\{([^}]+)\}', lambda m: m.group(1).translate(sup_map), text)
+    # _x 和 ^x 单字符
+    text = re.sub(r'_([0-9a-zA-Z])', lambda m: m.group(1).translate(sub_map), text)
+    text = re.sub(r'\^([0-9a-zA-Z])', lambda m: m.group(1).translate(sup_map), text)
+    # 清理 HTML 实体
     text = text.replace('&emsp;', '    ').replace('&nbsp;', ' ')
     return text.strip()
 
@@ -159,23 +155,6 @@ def knowledge_section(title: str, items: list[tuple[str, str, str]]):
                         unsafe_allow_html=True)
             if formula:
                 st.markdown(f'<div class="formula-box">{_clean_latex(formula)}</div>', unsafe_allow_html=True)
-
-
-# ── Cusdis 评论 ──
-CUSDIS_APP_ID = "384d8e94-78a6-46e5-860e-59990619b4e3"  # 注册 https://cusdis.com 后替换
-
-def show_comments(page_id: str, page_title: str):
-    html = f"""
-    <div style="padding: 0 0.5rem;">
-        <div id="cusdis_thread" data-host="https://cusdis.com"
-             data-app-id="{CUSDIS_APP_ID}"
-             data-page-id="{page_id}"
-             data-page-url="https://ee-learning.streamlit.app"
-             data-page-title="{page_title}"></div>
-        <script async defer src="https://cusdis.com/js/cusdis.es.js"></script>
-    </div>
-    """
-    st.components.v1.html(html, height=800, scrolling=True)
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -477,7 +456,7 @@ RESOURCES = {
 #  顶部导航 Tab
 # ════════════════════════════════════════════════════════════════════
 
-main_tabs = st.tabs(["课程知识", "资源链接", "仿真实验室", "留言讨论"])
+main_tabs = st.tabs(["课程知识", "资源链接", "仿真实验室"])
 
 # ── 课程知识 ──
 with main_tabs[0]:
@@ -518,10 +497,6 @@ with main_tabs[2]:
             "https://www.geogebra.org/classic/tz5x6vga?embed",
             height=550, scrolling=True,
         )
-
-# ── 留言讨论 ──
-with main_tabs[3]:
-    show_comments("discussion", "留言讨论")
 
 # ── 页脚 ──
 st.markdown('<div class="footer-line">EE-Learning &middot; 仅供个人学习使用</div>', unsafe_allow_html=True)
