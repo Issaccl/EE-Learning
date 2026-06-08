@@ -16,23 +16,23 @@ html { font-size: 15.5px; }
 #MainMenu { display: none !important; }
 footer { display: none !important; }
 
-/* ── 顶级 Tab 栏 ── */
-.main-tabs [data-baseweb="tab-list"] {
+/* ── 顶级 Tab 栏 (st.tabs 第一层) ── */
+.stTabs:first-of-type [data-baseweb="tab-list"] {
     gap: 0 !important; background: #fff !important; border-bottom: 1px solid #e2e8f0 !important;
-    border-radius: 10px 10px 0 0 !important; padding: 0 !important;
+    padding: 0 !important;
 }
-.main-tabs [data-baseweb="tab"] {
+.stTabs:first-of-type [data-baseweb="tab"] {
     border-radius: 0 !important; padding: 14px 28px !important;
     font-size: 1rem !important; font-weight: 500 !important; color: #64748b !important;
     background: transparent !important; border: none !important;
     border-bottom: 3px solid transparent !important;
 }
-.main-tabs [aria-selected="true"] {
+.stTabs:first-of-type [aria-selected="true"] {
     color: #0f172a !important; border-bottom: 3px solid #3b82f6 !important;
     font-weight: 600 !important; background: #fff !important;
 }
 
-/* ── 子 Tab 栏 ── */
+/* ── 子 Tab 栏 (嵌套的 st.tabs) ── */
 .stTabs [data-baseweb="tab-list"] {
     gap: 0 !important; background: transparent !important; border-bottom: 1px solid #e2e8f0 !important;
 }
@@ -105,22 +105,60 @@ footer { display: none !important; }
 """, unsafe_allow_html=True)
 
 
+def _clean_latex(text: str) -> str:
+    """将 LaTeX 公式转为可读纯文本"""
+    import re
+    # 替换常见 LaTeX 命令
+    replacements = [
+        (r'\\frac\{([^}]+)\}\{([^}]+)\}', r'(\1)/(\2)'),
+        (r'\\sqrt\{([^}]+)\}', r'√(\1)'),
+        (r'\\sum', 'Σ'), (r'\\prod', 'Π'), (r'\\int', '∫'),
+        (r'\\infty', '∞'), (r'\\pi', 'π'), (r'\\omega', 'ω'),
+        (r'\\zeta', 'ζ'), (r'\\alpha', 'α'), (r'\\beta', 'β'),
+        (r'\\gamma', 'γ'), (r'\\delta', 'δ'), (r'\\theta', 'θ'),
+        (r'\\phi', 'φ'), (r'\\sigma', 'σ'), (r'\\mu', 'μ'),
+        (r'\\tau', 'τ'), (r'\\lambda', 'λ'), (r'\\Delta', 'Δ'),
+        (r'\\angle', '∠'), (r'\\circ', '°'), (r'\\cdot', '·'),
+        (r'\\times', '×'), (r'\\pm', '±'), (r'\\mp', '∓'),
+        (r'\\leq', '≤'), (r'\\geq', '≥'), (r'\\neq', '≠'),
+        (r'\\approx', '≈'), (r'\\rightarrow', '→'), (r'\\leftarrow', '←'),
+        (r'\\Rightarrow', '⇒'), (r'\\Leftarrow', '⇐'),
+        (r'\\leftrightarrow', '↔'),
+        (r'\\cdots', '⋯'), (r'\\ldots', '…'),
+        (r'\\overline\{([^}]+)\}', r'̄\1'),  # 上划线
+        (r'\\dot\{([^}]+)\)', r'·\1'),
+        (r'\\mathbf\{([^}]+)\}', r'\1'),
+        (r'\\mathcal\{L\}', 'ℒ'),
+        (r'\\text\{([^}]+)\}', r'\1'),
+        (r'\\mathrm\{([^}]+)\}', r'\1'),
+        (r'\\lim', 'lim'), (r'\\log', 'log'), (r'\\lg', 'lg'),
+        (r'\\sin', 'sin'), (r'\\cos', 'cos'), (r'\\tan', 'tan'),
+        (r'\\exp', 'exp'),
+        (r'\\oint', '∮'),
+        (r'\\left\(', '('), (r'\\right\)', ')'),
+        (r'\\left\[', '['), (r'\\right\]', ']'),
+        (r'\\{', '{'), (r'\\}', '}'),
+    ]
+    for pat, repl in replacements:
+        text = re.sub(pat, repl, text)
+    # 去掉 $...$ 分隔符
+    text = text.replace('$', '')
+    # 清理残余反斜杠
+    text = text.replace('\\', '')
+    # 清理 &emsp; &nbsp;
+    text = text.replace('&emsp;', '    ').replace('&nbsp;', ' ')
+    return text.strip()
+
+
 def knowledge_section(title: str, items: list[tuple[str, str, str]]):
     """渲染一个知识板块。items = [(标题, 解释, 公式), ...]"""
     st.markdown(f'<div class="sub-header">{title}</div>', unsafe_allow_html=True)
     for name, desc, formula in items:
         with st.expander(name, expanded=False):
-            # 清洗描述中的内联公式 $...$ → 去掉美元符保留内容
-            clean_desc = desc.replace('`$', '`')
-            for _ in range(10):
-                if '$' in clean_desc:
-                    clean_desc = clean_desc.replace('$', '', 1).replace('$', '', 1)
-            st.markdown(f'<div style="font-size:0.95rem; line-height:1.8; color:#475569;">{clean_desc}</div>',
+            st.markdown(f'<div style="font-size:0.95rem; line-height:1.8; color:#475569;">{_clean_latex(desc)}</div>',
                         unsafe_allow_html=True)
             if formula:
-                # 清洗公式：去掉 $...$，替换 HTML 实体
-                f = formula.replace('$', '').replace('&emsp;', '    ').replace('&nbsp;', ' ')
-                st.markdown(f'<div class="formula-box">{f}</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="formula-box">{_clean_latex(formula)}</div>', unsafe_allow_html=True)
 
 
 # ── Cusdis 评论 ──
@@ -128,9 +166,7 @@ CUSDIS_APP_ID = "384d8e94-78a6-46e5-860e-59990619b4e3"  # 注册 https://cusdis.
 
 def show_comments(page_id: str, page_title: str):
     html = f"""
-    <div style="margin-top:2rem; padding-top:1.5rem; border-top:1px solid #e2e8f0;">
-        <div style="font-size:0.88rem; font-weight:600; color:#64748b; text-transform:uppercase;
-                    letter-spacing:0.06em; margin-bottom:12px;">留言讨论</div>
+    <div style="padding: 0 0.5rem;">
         <div id="cusdis_thread" data-host="https://cusdis.com"
              data-app-id="{CUSDIS_APP_ID}"
              data-page-id="{page_id}"
@@ -139,7 +175,7 @@ def show_comments(page_id: str, page_title: str):
         <script async defer src="https://cusdis.com/js/cusdis.es.js"></script>
     </div>
     """
-    st.components.v1.html(html, height=400, scrolling=True)
+    st.components.v1.html(html, height=800, scrolling=True)
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -385,41 +421,41 @@ CONTROL_THEORY = [
      """自动控制让系统在无人干预下按预期目标运行。空调恒温系统是典型**闭环控制**：测量→比较→调整。
 
 开环控制简单但抗干扰差；闭环控制通过反馈自动补偿扰动。性能三要素：**稳定性**（最基本前提）、**准确性**（稳态误差小）、**快速性**（响应快），三者常相互矛盾需权衡。""",
-     "$\\frac{C(s)}{R(s)}=\\frac{G(s)}{1+G(s)H(s)}$"),
+     "闭环传递函数: C(s)/R(s) = G(s) / [1 + G(s)H(s)]"),
 
     ("2. 控制系统的数学模型",
-     """传递函数 $G(s)=\\frac{C(s)}{R(s)}$ 在零初始条件下定义，完全由系统结构决定。典型环节：比例 $K$、积分 $1/s$、微分 $s$、惯性 $\\frac{1}{Ts+1}$、振荡 $\\frac{\\omega_n^2}{s^2+2\\zeta\\omega_n s+\\omega_n^2}$。""",
-     "惯性: $\\frac{K}{Ts+1}$, 振荡: $\\frac{\\omega_n^2}{s^2+2\\zeta\\omega_n s+\\omega_n^2}$"),
+     """传递函数 G(s) = C(s)/R(s) 在零初始条件下定义，完全由系统结构决定。典型环节：比例 K、积分 1/s、微分 s、惯性 1/(Ts+1)、振荡 ωₙ²/(s²+2ζωₙs+ωₙ²)。""",
+     "惯性: K/(Ts+1)    振荡: ωₙ²/(s² + 2ζωₙs + ωₙ²)"),
 
     ("3. 框图化简与信号流图",
-     """框图代数：串联 $G_1G_2$、并联 $G_1+G_2$、反馈 $\\frac{G}{1\\pm GH}$。化简规则包括移动求和点和分支点。
+     """框图代数：串联 G₁G₂、并联 G₁+G₂、反馈 G/(1±GH)。化简规则包括移动求和点和分支点。
 
 信号流图配合**梅森增益公式**可直接写出传递函数，无需逐步化简。""",
-     "梅森公式: $T=\\frac{1}{\\Delta}\\sum_k P_k \\Delta_k$"),
+     "梅森公式: T = (1/Δ) · Σ PₖΔₖ"),
 
     ("4. 时域分析与性能指标",
-     """二阶系统阶跃响应：上升时间 $t_r$、调节时间 $t_s$（$\\approx 3.5/(\\zeta\\omega_n)$ 或 $4/(\\zeta\\omega_n)$）、超调量 $\\sigma\\%=e^{-\\zeta\\pi/\\sqrt{1-\\zeta^2}}\\times 100\\%$。阻尼比 $\\zeta$ 和自然频率 $\\omega_n$ 完全决定响应形态。""",
-     "$\\sigma\\%=e^{-\\zeta\\pi/\\sqrt{1-\\zeta^2}}\\times 100\\%$, $t_s\\approx\\frac{4}{\\zeta\\omega_n}$"),
+     """二阶系统阶跃响应：上升时间 tᵣ、调节时间 tₛ（≈ 3.5/(ζωₙ) 或 4/(ζωₙ)）、超调量 σ% = e^(-ζπ/√(1-ζ²)) × 100%。阻尼比 ζ 和自然频率 ωₙ 完全决定响应形态。""",
+     "超调量: σ% = e^(-ζπ/√(1-ζ²)) × 100%     调节时间: tₛ ≈ 4/(ζωₙ)"),
 
     ("5. 稳定性分析",
      """BIBO稳定要求所有极点在s左半平面。**劳斯-赫尔维茨判据**通过特征方程系数构造劳斯表，无需直接求根即可判断稳定性——第一列变号次数等于右半平面极点数。""",
-     "特征方程: $a_n s^n+a_{n-1}s^{n-1}+\\cdots+a_0=0$"),
+     "特征方程: aₙsⁿ + aₙ₋₁sⁿ⁻¹ + ⋯ + a₁s + a₀ = 0"),
 
     ("6. 根轨迹法",
-     """根轨迹：当开环增益 $K$ 从0变化到无穷时，闭环极点在s平面上的运动轨迹。绘制规则：起点（$K=0$，开环极点）、终点（$K=\\infty$，开环零点或无穷远）、渐近线、分离点等。
+     """根轨迹：当开环增益 K 从0变化到无穷时，闭环极点在s平面上的运动轨迹。绘制规则：起点（K=0，开环极点）、终点（K→∞，开环零点或无穷远）、渐近线、分离点等。
 
 根轨迹直接反映增益变化对系统稳定性、阻尼和响应速度的影响。""",
-     "幅值条件: $|G(s)H(s)|=\\frac{1}{K}$, 相角条件: $\\angle G(s)H(s)=(2k+1)\\times180°$"),
+     "幅值条件: |G(s)H(s)| = 1/K     相角条件: ∠G(s)H(s) = (2k+1)×180°"),
 
     ("7. 频域分析",
-     """频率响应：令 $s=j\\omega$ 得到 $G(j\\omega)$，绘制**Bode图**（幅频+相频）。**增益裕度**和**相位裕度**衡量稳定程度。**Nyquist判据**：开环频率特性曲线包围(-1,j0)点的次数等于右半平面闭环极点数。""",
-     "增益裕度: $GM=-20\\lg|G(j\\omega_g)|$ dB, 相位裕度: $PM=180°+\\angle G(j\\omega_c)$"),
+     """频率响应：令 s=jω 得到 G(jω)，绘制**Bode图**（幅频+相频）。**增益裕度**和**相位裕度**衡量稳定程度。**Nyquist判据**：开环频率特性曲线包围(-1,j0)点的次数等于右半平面闭环极点数。""",
+     "增益裕度: GM = -20lg|G(jωg)| dB     相位裕度: PM = 180° + ∠G(jωc)"),
 
     ("8. 系统校正",
      """**PID控制器**：P（减小偏差但有余差）、I（消除稳态误差但降低稳定性）、D（预测趋势提高快速性但放大噪声）。
 
-Ziegler-Nichols经验整定法：先只用P控制逐步增大K直到等幅振荡，记录临界增益 $K_u$ 和振荡周期 $T_u$，然后按公式设置PID参数。""",
-     "PID: $u(t)=K_p e(t)+K_i\\int e(t)dt+K_d\\frac{de(t)}{dt}$"),
+Ziegler-Nichols经验整定法：先只用P控制逐步增大K直到等幅振荡，记录临界增益 Ku 和振荡周期 Tu，然后按公式设置PID参数。""",
+     "PID: u(t) = Kp·e(t) + Ki·∫e(t)dt + Kd·de(t)/dt"),
 ]
 
 RESOURCES = {
