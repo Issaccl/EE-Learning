@@ -7,32 +7,96 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ── 全局样式 ──
+# ── 蓝白主题全局样式 ──
 st.markdown("""
 <style>
-    .block-container { padding-top: 1.5rem; }
-    section[data-testid="stSidebar"] { background: #0f0f23; }
+    /* ── 基础排版 ── */
+    .block-container { padding-top: 1.5rem; max-width: 1100px; }
+    html, body, [class*="css"] { font-size: 17px !important; }
+    h1 { font-size: 2rem !important; font-weight: 700 !important; color: #1a3a5c !important; }
+    h2, h3 { font-size: 1.35rem !important; font-weight: 600 !important; color: #1a3a5c !important; }
+
+    /* ── 侧边栏 ── */
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #1a3a5c 0%, #0d253f 100%);
+    }
     section[data-testid="stSidebar"] p,
-    section[data-testid="stSidebar"] span { color: #e0e0e0 !important; }
-    .stExpander { border-radius: 10px; border: 1px solid #e0e0e0; margin-bottom: 6px; }
+    section[data-testid="stSidebar"] span,
+    section[data-testid="stSidebar"] label { color: #e8f0fe !important; font-size: 1.05rem !important; }
+    section[data-testid="stSidebar"] [data-baseweb="radio"] span { color: #e8f0fe !important; }
+    section[data-testid="stSidebar"] .stRadio > div { gap: 0.4rem; }
+
+    /* ── 展开器 ── */
+    .stExpander {
+        border: 1.5px solid #c5d8f0 !important;
+        border-radius: 12px !important;
+        margin-bottom: 8px !important;
+        background: #f8fbff !important;
+        box-shadow: 0 2px 8px rgba(26,58,92,0.06);
+    }
+    .stExpander summary { font-size: 1.08rem !important; font-weight: 500 !important; color: #1a3a5c !important; }
+    .stExpander:hover { border-color: #5b9bd5 !important; box-shadow: 0 4px 14px rgba(26,58,92,0.12); }
+
+    /* ── 公式卡片 ── */
     .formula-box {
-        background: #f1f3f5; border-left: 4px solid #2563eb;
-        border-radius: 8px; padding: 12px 16px; margin: 8px 0; font-size: 0.95rem;
+        background: linear-gradient(135deg, #eef4fb 0%, #e3edf7 100%);
+        border-left: 4px solid #2b6cb0;
+        border-radius: 10px;
+        padding: 14px 20px;
+        margin: 10px 0;
+        font-size: 1.05rem;
         text-align: center;
+        color: #1a3a5c;
+        font-weight: 500;
     }
-    @media (prefers-color-scheme: dark) {
-        .formula-box { background: #1a1a35; }
+
+    /* ── Tab 样式 ── */
+    .stTabs [data-baseweb="tab-list"] { gap: 4px; }
+    .stTabs [data-baseweb="tab"] {
+        border-radius: 8px 8px 0 0;
+        padding: 10px 20px;
+        font-size: 1rem;
+        font-weight: 500;
+        color: #4a7aa5;
     }
+    .stTabs [aria-selected="true"] {
+        background: #eef4fb !important;
+        color: #1a3a5c !important;
+        border-bottom: 3px solid #2b6cb0 !important;
+        font-weight: 600 !important;
+    }
+
+    /* ── 链接按钮 ── */
+    .stButton > button {
+        border-radius: 10px !important;
+        border: 1.5px solid #c5d8f0 !important;
+        background: #f8fbff !important;
+        color: #1a3a5c !important;
+        font-weight: 500 !important;
+        transition: all 0.2s;
+    }
+    .stButton > button:hover {
+        border-color: #2b6cb0 !important;
+        background: #eef4fb !important;
+        box-shadow: 0 4px 12px rgba(43,108,176,0.15);
+    }
+
+    /* ── 分割线 ── */
+    hr { border-color: #d0e2f2 !important; }
+
+    /* ── caption ── */
+    .stCaption, caption { color: #5a8ab5 !important; }
 </style>
 """, unsafe_allow_html=True)
 
 
 def knowledge_section(title: str, items: list[tuple[str, str, str]]):
     """渲染一个知识板块。items = [(标题, 解释, 公式), ...]"""
-    st.subheader(title)
+    st.markdown(f"#### {title}")
     for name, desc, formula in items:
         with st.expander(name, expanded=False):
-            st.markdown(desc)
+            st.markdown(f'<div style="font-size:1.05rem; line-height:1.8; color:#333;">{desc}</div>',
+                        unsafe_allow_html=True)
             if formula:
                 st.markdown(f'<div class="formula-box">{formula}</div>', unsafe_allow_html=True)
 
@@ -336,6 +400,13 @@ RESOURCES = {
 #  侧边栏导航
 # ════════════════════════════════════════════════════════════════════
 
+st.sidebar.markdown("""
+<div style="padding: 0.8rem 0 1.2rem 0; text-align: center;">
+    <span style="font-size: 2rem;">⚡</span><br>
+    <span style="color: white; font-size: 1.15rem; font-weight: 700;">电气工程学习平台</span>
+</div>
+""", unsafe_allow_html=True)
+
 page = st.sidebar.radio(
     "导航",
     ["📚 课程知识", "🔗 资源链接", "🔬 仿真实验室"],
@@ -347,7 +418,15 @@ page = st.sidebar.radio(
 # ════════════════════════════════════════════════════════════════════
 
 if page == "📚 课程知识":
-    st.title("📚 课程知识")
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #1a3a5c, #2b6cb0); padding: 1.5rem 2rem;
+                border-radius: 14px; margin-bottom: 1.5rem; color: white;">
+        <h1 style="color: white !important; margin: 0; font-size: 1.9rem;">📚 课程知识</h1>
+        <p style="color: #c5daf0; margin: 0.4rem 0 0 0; font-size: 1.05rem;">
+            电气工程核心课程 · 47个知识点 · 生活化类比 + 关键公式
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
     tab_names = ["电路理论", "工程数学", "模拟电子技术", "数字电子技术", "自动控制原理"]
     tabs = st.tabs(tab_names)
@@ -368,22 +447,38 @@ if page == "📚 课程知识":
 # ════════════════════════════════════════════════════════════════════
 
 elif page == "🔗 资源链接":
-    st.title("🔗 资源链接")
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #1a3a5c, #2b6cb0); padding: 1.5rem 2rem;
+                border-radius: 14px; margin-bottom: 1.5rem; color: white;">
+        <h1 style="color: white !important; margin: 0; font-size: 1.9rem;">🔗 资源链接</h1>
+        <p style="color: #c5daf0; margin: 0.4rem 0 0 0; font-size: 1.05rem;">
+            精选视频课程与在线教材 · 点击直达
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
     for group, cards in RESOURCES.items():
-        st.subheader(group)
+        st.markdown(f"#### {group}")
         cols = st.columns(2)
         for i, (title, desc, url, tag) in enumerate(cards):
             with cols[i % 2]:
                 st.link_button(f"**{title}**", url, help=desc, use_container_width=True)
-                st.caption(f"{desc}  \n:green[{tag}]")
+                st.caption(f"{desc}  \n:blue[{tag}]")
 
 # ════════════════════════════════════════════════════════════════════
 #  仿真实验室
 # ════════════════════════════════════════════════════════════════════
 
 elif page == "🔬 仿真实验室":
-    st.title("🔬 仿真实验室")
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #1a3a5c, #2b6cb0); padding: 1.5rem 2rem;
+                border-radius: 14px; margin-bottom: 1.5rem; color: white;">
+        <h1 style="color: white !important; margin: 0; font-size: 1.9rem;">🔬 仿真实验室</h1>
+        <p style="color: #c5daf0; margin: 0.4rem 0 0 0; font-size: 1.05rem;">
+            在线交互式仿真 · 电路模拟 + 复数可视化
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
     sim_tab = st.tabs(["⚡ CircuitJS 电路模拟器", "📐 GeoGebra 复数可视化"])
 
@@ -403,4 +498,8 @@ elif page == "🔬 仿真实验室":
 
 # ── 页脚 ──
 st.divider()
-st.caption("电气工程学习平台 · 仅供个人学习使用 · 2026")
+st.markdown(
+    '<p style="text-align:center; color:#8fadc4; font-size:0.92rem;">'
+    '电气工程学习平台 · 仅供个人学习使用 · 2026</p>',
+    unsafe_allow_html=True,
+)
