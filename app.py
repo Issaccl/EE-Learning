@@ -465,10 +465,129 @@ RESOURCES = {
 }
 
 # ════════════════════════════════════════════════════════════════════
+#  试题数据
+# ════════════════════════════════════════════════════════════════════
+
+QUESTIONS = {
+    "电路理论": [
+        {"q": "基尔霍夫电流定律(KCL)的本质是什么？",
+         "opts": ["能量守恒", "电荷守恒", "动量守恒", "功率守恒"],
+         "ans": 1, "exp": "KCL的本质是电荷守恒：流入节点的电荷速率等于流出的电荷速率，电荷不会在节点处积累或消失。"},
+        {"q": "两个电阻 R₁=10Ω 和 R₂=30Ω 并联，等效电阻是多少？",
+         "opts": ["40Ω", "7.5Ω", "20Ω", "300Ω"],
+         "ans": 1, "exp": "并联: R_eq = (R₁×R₂)/(R₁+R₂) = (10×30)/(10+30) = 300/40 = 7.5Ω。并联等效电阻一定小于最小的单个电阻。"},
+        {"q": "正弦稳态分析中，电容的阻抗表达式是？",
+         "opts": ["jωC", "1/(jωC)", "jωL", "R"],
+         "ans": 1, "exp": "电容的伏安关系 i=C·dv/dt 在相量域变为 İ=jωC·V̇，因此阻抗 Z_C = V̇/İ = 1/(jωC) = -j/(ωC)。"},
+        {"q": "RC电路的时间常数τ等于？",
+         "opts": ["R/C", "RC", "1/(RC)", "R²C"],
+         "ans": 1, "exp": "RC电路时间常数 τ=RC，单位为秒。经过一个τ后电容电压充到约63.2%，经过5τ后认为过渡过程结束。"},
+        {"q": "戴维南等效电路中，等效电阻Rth的求法是？",
+         "opts": ["将所有电源短路后从端口看进去的电阻", "开路电压除以短路电流", "负载电阻的值", "电源内阻"],
+         "ans": 1, "exp": "Rth = V_oc/I_sc，即开路电压除以短路电流。也可以将所有独立源置零（电压源短路、电流源开路）后从端口看进去的等效电阻。"},
+        {"q": "理想变压器的电压比等于？",
+         "opts": ["电流比", "匝数反比", "匝数比", "阻抗比"],
+         "ans": 2, "exp": "理想变压器: V₁/V₂ = N₁/N₂（电压比等于匝数比），I₁/I₂ = N₂/N₁（电流比等于匝数反比）。"},
+        {"q": "三相电路中，Y接时线电压与相电压的关系是？",
+         "opts": ["V_L = V_P", "V_L = √3·V_P", "V_L = 3·V_P", "V_L = V_P/√3"],
+         "ans": 1, "exp": "Y接(星形连接)时线电压等于相电压的√3倍: V_L = √3·V_P。例如民用电220V相电压对应380V线电压。"},
+        {"q": "串联RLC电路发生谐振时，电路呈什么性质？",
+         "opts": ["感性", "容性", "纯阻性", "不确定"],
+         "ans": 2, "exp": "串联谐振时感抗等于容抗(jωL = 1/(jωC))，两者相互抵消，总阻抗等于纯电阻R，电路呈纯阻性。"},
+    ],
+    "工程数学": [
+        {"q": "欧拉公式 e^(jθ) 等于？",
+         "opts": ["cosθ + sinθ", "cosθ + j·sinθ", "sinθ + j·cosθ", "j·(cosθ + sinθ)"],
+         "ans": 1, "exp": "欧拉公式: e^(jθ) = cosθ + j·sinθ，被誉为最美的数学公式，将指数函数与三角函数统一。"},
+        {"q": "复数 z = 3 + 4j 的模 |z| 等于？",
+         "opts": ["7", "12", "5", "25"],
+         "ans": 2, "exp": "|z| = √(a²+b²) = √(3²+4²) = √(9+16) = √25 = 5。这是经典的3-4-5勾股数。"},
+        {"q": "一阶微分方程的通解由哪两部分组成？",
+         "opts": ["齐次解和特解", "零输入响应和零状态响应", "暂态响应和稳态响应", "以上都对"],
+         "ans": 3, "exp": "一阶微分方程通解 = 齐次解(自由响应) + 特解(强制响应)。零输入/零状态、暂态/稳态是不同的分解方式，三者本质相通。"},
+        {"q": "德摩根定律 A·B 的非 等于？",
+         "opts": ["A非 + B非", "A非 · B非", "A + B", "A · B非"],
+         "ans": 0, "exp": "德摩根定律: (A·B)' = A' + B'，即"与的非等于非的或"。同理 (A+B)' = A'·B'。这是逻辑代数中最常用的定律。"},
+        {"q": "拉普拉斯变换中，f(t)=e^(-at) 的变换结果是？",
+         "opts": ["1/(s+a)", "1/(s-a)", "a/(s+a)", "s/(s+a)"],
+         "ans": 0, "exp": "L{e^(-at)} = 1/(s+a)，收敛域 Re(s)>-a。这是拉普拉斯变换最基本的变换对之一。"},
+        {"q": "矩阵 A 满足什么条件时逆矩阵存在？",
+         "opts": ["A是方阵", "A的行列式不为零", "A的元素全为正", "A是对称矩阵"],
+         "ans": 1, "exp": "逆矩阵 A⁻¹ 存在的充要条件是 |A|≠0（行列式不为零），即A是非奇异矩阵。仅仅A是方阵不够。"},
+    ],
+    "模拟电子技术": [
+        {"q": "硅二极管的正向导通压降约为？",
+         "opts": ["0.1V", "0.3V", "0.7V", "1.2V"],
+         "ans": 2, "exp": "硅二极管正向导通压降约0.7V，锗管约0.3V。这是半导体器件的基本参数，在电路分析中常用恒压降模型。"},
+        {"q": "BJT工作在放大区的条件是？",
+         "opts": ["发射结正偏、集电结正偏", "发射结反偏、集电结反偏", "发射结正偏、集电结反偏", "两个结都零偏"],
+         "ans": 2, "exp": "放大区: 发射结正偏(保证载流子注入)、集电结反偏(保证载流子被收集)。此时 I_C = β·I_B。"},
+        {"q": "负反馈对放大器带宽的影响是？",
+         "opts": ["减小带宽", "增大带宽", "不影响带宽", "带宽先增后减"],
+         "ans": 1, "exp": "负反馈展宽带宽: BW_f = BW·(1+AF)。增益降低多少倍，带宽就增大多少倍，增益带宽积保持不变。"},
+        {"q": "理想运放的"虚短"指的是？",
+         "opts": ["输入电流为零", "输出电压为零", "两输入端电压相等", "开环增益为零"],
+         "ans": 2, "exp": "虚短: v+ = v-，两输入端电压相等。这是因为理想运放开环增益无穷大，而输出电压有限，所以输入差模电压必须趋近于零。"},
+        {"q": "B类功放的最大理论效率是？",
+         "opts": ["25%", "50%", "78.5%", "100%"],
+         "ans": 2, "exp": "B类推挽功放最大效率 η_max = π/4 ≈ 78.5%。A类最高25%(电阻负载)，D类可达90%以上。"},
+        {"q": "文氏电桥振荡器的振荡频率公式是？",
+         "opts": ["f₀ = 1/(2πRC)", "f₀ = 1/(2π√LC)", "f₀ = RC/(2π)", "f₀ = 2πRC"],
+         "ans": 0, "exp": "RC桥式(文氏电桥)振荡器: f₀ = 1/(2πRC)，适用于低频(Hz~kHz)。LC振荡器: f₀ = 1/(2π√LC)，适用于高频。"},
+    ],
+    "数字电子技术": [
+        {"q": "二进制数 1101 转换为十进制是？",
+         "opts": ["11", "12", "13", "14"],
+         "ans": 2, "exp": "1101₂ = 1×8 + 1×4 + 0×2 + 1×1 = 13₁₀。从右到左每位的权值是 2⁰, 2¹, 2², 2³。"},
+        {"q": "与非门(NAND)为什么被称为"通用门"？",
+         "opts": ["因为它最快", "因为仅用与非门就能实现所有逻辑功能", "因为它的功耗最低", "因为它是CMOS工艺"],
+         "ans": 1, "exp": "与非门和或非门都是"完备集"——仅用一种门就能搭建出与、或、非等所有逻辑功能，因此被称为通用门。"},
+        {"q": "D触发器的特征方程是？",
+         "opts": ["Q(n+1) = D", "Q(n+1) = J·Q'+K'·Q", "Q(n+1) = T⊕Q", "Q(n+1) = S+R'·Q"],
+         "ans": 0, "exp": "D触发器在时钟有效沿将输入D锁存到输出: Q(n+1) = D。它是最简单也是最常用的触发器，是寄存器的基本单元。"},
+        {"q": "卡诺图化简中，圈的大小必须是？",
+         "opts": ["任意数量", "2的幂次个格子(1,2,4,8...)", "偶数个格子", "至少4个格子"],
+         "ans": 1, "exp": "卡诺图中每圈必须包含 2ⁿ 个格子(1,2,4,8,16...)，对应消去n个变量。圈越大，消去的变量越多，表达式越简。"},
+        {"q": "逐次逼近型(SAR)ADC的特点是？",
+         "opts": ["速度最快但面积大", "速度和精度均衡，最常用", "精度最高但速度最慢", "分辨率最高"],
+         "ans": 1, "exp": "SAR ADC用二分法逐位确定，n位需要n个时钟周期。速度和精度均衡，是应用最广的ADC类型(8~18位，几十kSPS~几MSPS)。"},
+        {"q": "8421BCD码中，十进制数9的编码是？",
+         "opts": ["1001", "1010", "1100", "1000"],
+         "ans": 0, "exp": "8421BCD码用4位二进制表示1位十进制。9 = 1001₂(8+0+0+1)。有效范围0000~1001，1010~1111无效。"},
+    ],
+    "自动控制原理": [
+        {"q": "闭环控制系统相比开环系统的主要优势是？",
+         "opts": ["结构简单", "成本低", "能自动补偿扰动", "不需要传感器"],
+         "ans": 2, "exp": "闭环控制通过反馈自动检测偏差并修正，能补偿扰动和参数变化。代价是结构复杂、成本较高，但性能远优于开环。"},
+        {"q": "传递函数 G(s) 定义的前提条件是？",
+         "opts": ["系统必须是线性的", "初始条件为零", "输入是阶跃信号", "系统是时不变的"],
+         "ans": 1, "exp": "传递函数定义为零初始条件下，输出的拉普拉斯变换与输入的拉普拉斯变换之比。线性和时不变是隐含前提，但定义的关键约束是零初始条件。"},
+        {"q": "二阶系统阻尼比 ζ = 0.5 时，系统响应属于？",
+         "opts": ["过阻尼", "欠阻尼", "临界阻尼", "无阻尼"],
+         "ans": 1, "exp": "ζ < 1 为欠阻尼(振荡衰减)，ζ > 1 为过阻尼(缓慢无振荡)，ζ = 1 为临界阻尼。ζ = 0.5 < 1，属于欠阻尼。"},
+        {"q": "劳斯判据中，劳斯表第一列变号次数等于？",
+         "opts": ["系统的阶数", "右半平面极点数", "左半平面极点数", "虚轴上的极点数"],
+         "ans": 1, "exp": "劳斯-赫尔维茨判据: 特征方程在右半平面的根(不稳定极点)个数等于劳斯表第一列变号次数。第一列不变号则系统稳定。"},
+        {"q": "根轨迹的起点(K=0)是？",
+         "opts": ["开环零点", "开环极点", "闭环零点", "闭环极点"],
+         "ans": 1, "exp": "根轨迹起于开环极点(K=0)，终于开环零点或无穷远(K→∞)。绘制根轨迹可以直观看出增益K变化对闭环极点位置的影响。"},
+        {"q": "PID控制器中，I(积分)环节的主要作用是？",
+         "opts": ["提高响应速度", "减小超调量", "消除稳态误差", "抑制高频噪声"],
+         "ans": 2, "exp": "积分环节对偏差进行累积，只要偏差存在就会持续调整，最终消除稳态误差。但积分会降低系统稳定性，可能引起振荡。"},
+        {"q": "Bode图中，增益裕度(GM)的定义是？",
+         "opts": ["相位为-180°时增益的倒数", "增益为0dB时相位与-180°的差", "截止频率处的增益", "直流增益"],
+         "ans": 0, "exp": "增益裕度: 当相位等于-180°时，增益距0dB的余量。GM = -20lg|G(jωg)| dB，ωg是相位穿越频率。GM越大越稳定。"},
+        {"q": "Ziegler-Nichols整定法中，首先需要找到？",
+         "opts": ["系统的传递函数", "临界增益Ku和振荡周期Tu", "所有极点的位置", "Bode图"],
+         "ans": 1, "exp": "Z-N法: 先只用P控制，逐步增大K直到系统等幅振荡，记录此时的临界增益Ku和振荡周期Tu，再按经验公式计算PID参数。"},
+    ],
+}
+
+# ════════════════════════════════════════════════════════════════════
 #  顶部导航 Tab
 # ════════════════════════════════════════════════════════════════════
 
-main_tabs = st.tabs(["课程知识", "资源链接", "仿真实验室"])
+main_tabs = st.tabs(["课程知识", "资源链接", "仿真实验室", "试题练习"])
 
 # ── 课程知识 ──
 with main_tabs[0]:
@@ -509,6 +628,123 @@ with main_tabs[2]:
             "https://www.geogebra.org/classic/tz5x6vga?embed",
             height=550, scrolling=True,
         )
+
+# ── 试题练习 ──
+with main_tabs[3]:
+    # 初始化 session state
+    if 'quiz_subject' not in st.session_state:
+        st.session_state.quiz_subject = None
+    if 'quiz_idx' not in st.session_state:
+        st.session_state.quiz_idx = 0
+    if 'quiz_score' not in st.session_state:
+        st.session_state.quiz_score = 0
+    if 'quiz_total' not in st.session_state:
+        st.session_state.quiz_total = 0
+    if 'quiz_answered' not in st.session_state:
+        st.session_state.quiz_answered = False
+    if 'quiz_history' not in st.session_state:
+        st.session_state.quiz_history = []
+
+    # 选择科目
+    if st.session_state.quiz_subject is None:
+        st.markdown("**选择科目开始练习**")
+        cols = st.columns(len(QUESTIONS))
+        for i, (subj, qs) in enumerate(QUESTIONS.items()):
+            with cols[i]:
+                if st.button(f"**{subj}**\n\n{len(qs)} 题", key=f"sub_{i}", use_container_width=True):
+                    st.session_state.quiz_subject = subj
+                    st.session_state.quiz_idx = 0
+                    st.session_state.quiz_score = 0
+                    st.session_state.quiz_total = len(qs)
+                    st.session_state.quiz_answered = False
+                    st.session_state.quiz_history = []
+                    st.rerun()
+    else:
+        subj = st.session_state.quiz_subject
+        questions = QUESTIONS[subj]
+        idx = st.session_state.quiz_idx
+
+        # 顶部进度栏
+        progress = (idx) / len(questions) if len(questions) > 0 else 0
+        st.progress(progress, text=f"{subj} · 第 {idx+1}/{len(questions)} 题 · 得分 {st.session_state.quiz_score}/{st.session_state.quiz_total}")
+
+        if idx < len(questions):
+            q = questions[idx]
+            st.markdown(f"**{idx+1}. {q['q']}**")
+
+            # 显示选项
+            selected = st.radio("选择答案", q["opts"], key=f"q_{idx}", index=None)
+
+            col1, col2 = st.columns([1, 4])
+            with col1:
+                if st.button("提交", key=f"submit_{idx}", disabled=(selected is None), use_container_width=True):
+                    st.session_state.quiz_answered = True
+                    chosen = q["opts"].index(selected)
+                    correct = chosen == q["ans"]
+                    if correct:
+                        st.session_state.quiz_score += 1
+                    st.session_state.quiz_history.append({
+                        "q": q["q"], "chosen": chosen, "correct": correct,
+                        "correct_ans": q["ans"], "exp": q["exp"]
+                    })
+                    st.rerun()
+
+            # 显示结果
+            if st.session_state.quiz_answered:
+                last = st.session_state.quiz_history[-1]
+                if last["correct"]:
+                    st.success("正确!")
+                else:
+                    st.error(f"错误! 正确答案: {q['opts'][last['correct_ans']]}")
+                st.info(f"**解析:** {last['exp']}")
+
+                if st.button("下一题", key=f"next_{idx}", use_container_width=True):
+                    st.session_state.quiz_idx += 1
+                    st.session_state.quiz_answered = False
+                    st.rerun()
+        else:
+            # 答题结束
+            score = st.session_state.quiz_score
+            total = st.session_state.quiz_total
+            pct = score / total * 100 if total > 0 else 0
+
+            st.markdown(f"### 练习完成!")
+            st.markdown(f"**{subj}** · 得分 **{score}/{total}** ({pct:.0f}%)")
+
+            if pct >= 80:
+                st.balloons()
+                st.success("优秀! 掌握得很好!")
+            elif pct >= 60:
+                st.info("不错，继续加油!")
+            else:
+                st.warning("建议回顾知识点后再试一次。")
+
+            # 答题详情
+            with st.expander("查看答题详情", expanded=False):
+                for i, h in enumerate(st.session_state.quiz_history):
+                    icon = "✓" if h["correct"] else "✗"
+                    color = "green" if h["correct"] else "red"
+                    st.markdown(f"**{i+1}.** :{color}[{icon}] {h['q']}")
+                    if not h["correct"]:
+                        st.caption(f"你选: {q['opts'][h['chosen']]} → 正确: {q['opts'][h['correct_ans']]}")
+                    st.caption(f"解析: {h['exp']}")
+
+            c1, c2 = st.columns(2)
+            with c1:
+                if st.button("重新挑战", use_container_width=True):
+                    st.session_state.quiz_idx = 0
+                    st.session_state.quiz_score = 0
+                    st.session_state.quiz_answered = False
+                    st.session_state.quiz_history = []
+                    st.rerun()
+            with c2:
+                if st.button("换个科目", use_container_width=True):
+                    st.session_state.quiz_subject = None
+                    st.session_state.quiz_idx = 0
+                    st.session_state.quiz_score = 0
+                    st.session_state.quiz_answered = False
+                    st.session_state.quiz_history = []
+                    st.rerun()
 
 # ── 页脚 ──
 st.markdown('<div class="footer-line">EE-Learning &middot; 仅供个人学习使用</div>', unsafe_allow_html=True)
