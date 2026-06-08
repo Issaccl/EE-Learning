@@ -2,100 +2,92 @@ import streamlit as st
 
 st.set_page_config(
     page_title="电气工程学习平台",
-    page_icon="⚡",
+    page_icon="",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# ── 蓝白主题全局样式 ──
 st.markdown("""
 <style>
-    /* ── 基础排版 ── */
-    .block-container { padding-top: 1.5rem; max-width: 1100px; }
-    html, body, [class*="css"] { font-size: 17px !important; }
-    h1 { font-size: 2rem !important; font-weight: 700 !important; color: #1a3a5c !important; }
-    h2, h3 { font-size: 1.35rem !important; font-weight: 600 !important; color: #1a3a5c !important; }
+    /* ── Reset & Base ── */
+    .block-container { padding-top: 2rem; padding-bottom: 1rem; max-width: 1060px; }
+    html, body, [class*="css"] { font-family: "Inter", "Segoe UI", system-ui, sans-serif !important; }
+    html { font-size: 16px; }
+    h1 { font-size: 1.75rem !important; font-weight: 700 !important; color: #1e293b !important; letter-spacing: -0.02em; }
+    h2 { font-size: 1.2rem !important; font-weight: 600 !important; color: #334155 !important; }
+    h3, h4 { font-size: 1.05rem !important; font-weight: 600 !important; color: #475569 !important; }
+    p, li { font-size: 0.98rem !important; line-height: 1.75 !important; color: #475569 !important; }
 
-    /* ── 侧边栏 ── */
-    section[data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #1a3a5c 0%, #0d253f 100%);
-    }
+    /* ── Sidebar ── */
+    section[data-testid="stSidebar"] { background: #1e293b; }
     section[data-testid="stSidebar"] p,
     section[data-testid="stSidebar"] span,
-    section[data-testid="stSidebar"] label { color: #e8f0fe !important; font-size: 1.05rem !important; }
-    section[data-testid="stSidebar"] [data-baseweb="radio"] span { color: #e8f0fe !important; }
-    section[data-testid="stSidebar"] .stRadio > div { gap: 0.4rem; }
+    section[data-testid="stSidebar"] label { color: #e2e8f0 !important; }
+    section[data-testid="stSidebar"] .stRadio > div { gap: 2px; }
+    section[data-testid="stSidebar"] [data-baseweb="radio"] span { color: #e2e8f0 !important; font-size: 0.95rem !important; }
+    section[data-testid="stSidebar"] hr { border-color: #334155 !important; }
 
-    /* ── 展开器 ── */
+    /* ── Expander ── */
     .stExpander {
-        border: 1.5px solid #c5d8f0 !important;
-        border-radius: 12px !important;
-        margin-bottom: 8px !important;
-        background: #f8fbff !important;
-        box-shadow: 0 2px 8px rgba(26,58,92,0.06);
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 8px !important;
+        margin-bottom: 4px !important;
+        background: #fff !important;
     }
-    .stExpander summary { font-size: 1.08rem !important; font-weight: 500 !important; color: #1a3a5c !important; }
-    .stExpander:hover { border-color: #5b9bd5 !important; box-shadow: 0 4px 14px rgba(26,58,92,0.12); }
+    .stExpander summary { font-size: 1rem !important; font-weight: 500 !important; color: #1e293b !important; padding: 0.6rem 0.8rem !important; }
+    .stExpander:hover { border-color: #94a3b8 !important; }
+    .stExpander div[data-testid="stExpander"] div { font-size: 0.95rem !important; }
 
-    /* ── 公式卡片 ── */
+    /* ── Formula ── */
     .formula-box {
-        background: linear-gradient(135deg, #eef4fb 0%, #e3edf7 100%);
-        border-left: 4px solid #2b6cb0;
-        border-radius: 10px;
-        padding: 14px 20px;
-        margin: 10px 0;
-        font-size: 1.05rem;
+        background: #f1f5f9;
+        border-left: 3px solid #3b82f6;
+        border-radius: 6px;
+        padding: 12px 16px;
+        margin: 8px 0;
+        font-size: 0.95rem;
         text-align: center;
-        color: #1a3a5c;
-        font-weight: 500;
+        color: #1e293b;
+        font-weight: 400;
     }
 
-    /* ── Tab 样式 ── */
-    .stTabs [data-baseweb="tab-list"] { gap: 4px; }
+    /* ── Tabs ── */
+    .stTabs [data-baseweb="tab-list"] { gap: 0; border-bottom: 1px solid #e2e8f0; }
     .stTabs [data-baseweb="tab"] {
-        border-radius: 8px 8px 0 0;
-        padding: 10px 20px;
-        font-size: 1rem;
-        font-weight: 500;
-        color: #4a7aa5;
+        border-radius: 0; padding: 10px 24px;
+        font-size: 0.95rem; font-weight: 500; color: #64748b;
+        border-bottom: 2px solid transparent;
     }
     .stTabs [aria-selected="true"] {
-        background: #eef4fb !important;
-        color: #1a3a5c !important;
-        border-bottom: 3px solid #2b6cb0 !important;
-        font-weight: 600 !important;
+        color: #1e293b !important; border-bottom: 2px solid #3b82f6 !important; font-weight: 600 !important;
+        background: transparent !important;
     }
 
-    /* ── 链接按钮 ── */
+    /* ── Link button (resource cards) ── */
     .stButton > button {
-        border-radius: 10px !important;
-        border: 1.5px solid #c5d8f0 !important;
-        background: #f8fbff !important;
-        color: #1a3a5c !important;
-        font-weight: 500 !important;
-        transition: all 0.2s;
+        border-radius: 8px !important; border: 1px solid #e2e8f0 !important;
+        background: #fff !important; color: #1e293b !important;
+        font-weight: 500 !important; text-align: left !important;
+        padding: 0.7rem 1rem !important; transition: border-color 0.15s;
     }
-    .stButton > button:hover {
-        border-color: #2b6cb0 !important;
-        background: #eef4fb !important;
-        box-shadow: 0 4px 12px rgba(43,108,176,0.15);
-    }
+    .stButton > button:hover { border-color: #3b82f6 !important; background: #f8fafc !important; }
 
-    /* ── 分割线 ── */
-    hr { border-color: #d0e2f2 !important; }
+    /* ── Info boxes ── */
+    .stAlert { border-radius: 8px !important; font-size: 0.92rem !important; }
 
-    /* ── caption ── */
-    .stCaption, caption { color: #5a8ab5 !important; }
+    /* ── Misc ── */
+    hr { border-color: #e2e8f0 !important; }
+    .stCaption, caption { color: #94a3b8 !important; font-size: 0.85rem !important; }
 </style>
 """, unsafe_allow_html=True)
 
 
 def knowledge_section(title: str, items: list[tuple[str, str, str]]):
     """渲染一个知识板块。items = [(标题, 解释, 公式), ...]"""
-    st.markdown(f"#### {title}")
+    st.markdown(f"**{title}**")
     for name, desc, formula in items:
         with st.expander(name, expanded=False):
-            st.markdown(f'<div style="font-size:1.05rem; line-height:1.8; color:#333;">{desc}</div>',
+            st.markdown(f'<div style="font-size:0.95rem; line-height:1.8; color:#475569;">{desc}</div>',
                         unsafe_allow_html=True)
             if formula:
                 st.markdown(f'<div class="formula-box">{formula}</div>', unsafe_allow_html=True)
@@ -401,15 +393,15 @@ RESOURCES = {
 # ════════════════════════════════════════════════════════════════════
 
 st.sidebar.markdown("""
-<div style="padding: 0.8rem 0 1.2rem 0; text-align: center;">
-    <span style="font-size: 2rem;">⚡</span><br>
-    <span style="color: white; font-size: 1.15rem; font-weight: 700;">电气工程学习平台</span>
+<div style="padding: 1rem 0 1.5rem 0; text-align: center; border-bottom: 1px solid #334155; margin-bottom: 1rem;">
+    <span style="color: #f1f5f9; font-size: 1.2rem; font-weight: 700; letter-spacing: -0.01em;">EE-Learning</span><br>
+    <span style="color: #94a3b8; font-size: 0.82rem;">电气工程学习平台</span>
 </div>
 """, unsafe_allow_html=True)
 
 page = st.sidebar.radio(
     "导航",
-    ["📚 课程知识", "🔗 资源链接", "🔬 仿真实验室"],
+    ["课程知识", "资源链接", "仿真实验室"],
     label_visibility="collapsed",
 )
 
@@ -417,13 +409,13 @@ page = st.sidebar.radio(
 #  课程知识
 # ════════════════════════════════════════════════════════════════════
 
-if page == "📚 课程知识":
+if page == "课程知识":
     st.markdown("""
-    <div style="background: linear-gradient(135deg, #1a3a5c, #2b6cb0); padding: 1.5rem 2rem;
-                border-radius: 14px; margin-bottom: 1.5rem; color: white;">
-        <h1 style="color: white !important; margin: 0; font-size: 1.9rem;">📚 课程知识</h1>
-        <p style="color: #c5daf0; margin: 0.4rem 0 0 0; font-size: 1.05rem;">
-            电气工程核心课程 · 47个知识点 · 生活化类比 + 关键公式
+    <div style="background: #1e293b; padding: 1.8rem 2rem;
+                border-radius: 10px; margin-bottom: 1.8rem;">
+        <h1 style="color: #f1f5f9 !important; margin: 0; font-size: 1.6rem; font-weight: 700;">课程知识</h1>
+        <p style="color: #94a3b8; margin: 0.3rem 0 0 0; font-size: 0.92rem;">
+            电气工程核心课程 / 47 个知识点 / 生活化类比 + 关键公式
         </p>
     </div>
     """, unsafe_allow_html=True)
@@ -446,51 +438,51 @@ if page == "📚 课程知识":
 #  资源链接
 # ════════════════════════════════════════════════════════════════════
 
-elif page == "🔗 资源链接":
+elif page == "资源链接":
     st.markdown("""
-    <div style="background: linear-gradient(135deg, #1a3a5c, #2b6cb0); padding: 1.5rem 2rem;
-                border-radius: 14px; margin-bottom: 1.5rem; color: white;">
-        <h1 style="color: white !important; margin: 0; font-size: 1.9rem;">🔗 资源链接</h1>
-        <p style="color: #c5daf0; margin: 0.4rem 0 0 0; font-size: 1.05rem;">
-            精选视频课程与在线教材 · 点击直达
+    <div style="background: #1e293b; padding: 1.8rem 2rem;
+                border-radius: 10px; margin-bottom: 1.8rem;">
+        <h1 style="color: #f1f5f9 !important; margin: 0; font-size: 1.6rem; font-weight: 700;">资源链接</h1>
+        <p style="color: #94a3b8; margin: 0.3rem 0 0 0; font-size: 0.92rem;">
+            精选视频课程与在线教材 / 点击直达
         </p>
     </div>
     """, unsafe_allow_html=True)
 
     for group, cards in RESOURCES.items():
-        st.markdown(f"#### {group}")
+        st.markdown(f"**{group}**")
         cols = st.columns(2)
         for i, (title, desc, url, tag) in enumerate(cards):
             with cols[i % 2]:
                 st.link_button(f"**{title}**", url, help=desc, use_container_width=True)
-                st.caption(f"{desc}  \n:blue[{tag}]")
+                st.caption(f"{desc} / {tag}")
 
 # ════════════════════════════════════════════════════════════════════
 #  仿真实验室
 # ════════════════════════════════════════════════════════════════════
 
-elif page == "🔬 仿真实验室":
+elif page == "仿真实验室":
     st.markdown("""
-    <div style="background: linear-gradient(135deg, #1a3a5c, #2b6cb0); padding: 1.5rem 2rem;
-                border-radius: 14px; margin-bottom: 1.5rem; color: white;">
-        <h1 style="color: white !important; margin: 0; font-size: 1.9rem;">🔬 仿真实验室</h1>
-        <p style="color: #c5daf0; margin: 0.4rem 0 0 0; font-size: 1.05rem;">
-            在线交互式仿真 · 电路模拟 + 复数可视化
+    <div style="background: #1e293b; padding: 1.8rem 2rem;
+                border-radius: 10px; margin-bottom: 1.8rem;">
+        <h1 style="color: #f1f5f9 !important; margin: 0; font-size: 1.6rem; font-weight: 700;">仿真实验室</h1>
+        <p style="color: #94a3b8; margin: 0.3rem 0 0 0; font-size: 0.92rem;">
+            在线交互式仿真 / 电路模拟 + 复数可视化
         </p>
     </div>
     """, unsafe_allow_html=True)
 
-    sim_tab = st.tabs(["⚡ CircuitJS 电路模拟器", "📐 GeoGebra 复数可视化"])
+    sim_tab = st.tabs(["CircuitJS 电路模拟器", "GeoGebra 复数可视化"])
 
     with sim_tab[0]:
-        st.info("💡 可点击「文件 → 打开示例」浏览预置电路，或自行搭建电路进行仿真。支持电压/电流波形实时显示。")
+        st.info("可点击 文件 - 打开示例 浏览预置电路，或自行搭建电路进行仿真。支持电压/电流波形实时显示。")
         st.components.v1.iframe(
             "https://lushprojects.com/circuitjs/circuitjs.html?lang=zh",
             height=550, scrolling=True,
         )
 
     with sim_tab[1]:
-        st.info("💡 拖动复平面上的点，观察复数乘法的几何意义——模相乘、角度相加。")
+        st.info("拖动复平面上的点，观察复数乘法的几何意义——模相乘、角度相加。")
         st.components.v1.iframe(
             "https://www.geogebra.org/classic/tz5x6vga?embed",
             height=550, scrolling=True,
@@ -499,7 +491,7 @@ elif page == "🔬 仿真实验室":
 # ── 页脚 ──
 st.divider()
 st.markdown(
-    '<p style="text-align:center; color:#8fadc4; font-size:0.92rem;">'
-    '电气工程学习平台 · 仅供个人学习使用 · 2026</p>',
+    '<p style="text-align:center; color:#94a3b8; font-size:0.85rem;">'
+    'EE-Learning · 仅供个人学习使用</p>',
     unsafe_allow_html=True,
 )
