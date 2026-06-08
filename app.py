@@ -1,13 +1,12 @@
 import streamlit as st
 
-st.set_page_config(page_title="EE-Learning", page_icon="", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="EE-Learning", page_icon="", layout="wide")
 
 # ── 全量 CSS 注入 ──
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-/* ── 全局 ── */
 .stApp { font-family: 'Inter', system-ui, sans-serif !important; }
 .block-container { padding-top: 1.5rem !important; padding-bottom: 1rem !important; max-width: 1000px !important; }
 section[data-testid="stMain"] { background: #f8fafc !important; }
@@ -17,67 +16,42 @@ html { font-size: 15.5px; }
 #MainMenu { display: none !important; }
 footer { display: none !important; }
 
-/* ── 侧边栏 ── */
-section[data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%) !important;
-    border-right: 1px solid #334155 !important;
+/* ── 顶级 Tab 栏 ── */
+.main-tabs [data-baseweb="tab-list"] {
+    gap: 0 !important; background: #fff !important; border-bottom: 1px solid #e2e8f0 !important;
+    border-radius: 10px 10px 0 0 !important; padding: 0 !important;
 }
-section[data-testid="stSidebar"] [data-testid="stSidebarNav"] > div { margin-bottom: 2px; }
-section[data-testid="stSidebar"] [data-testid="stSidebarNav"] > div > div > label {
-    color: #cbd5e1 !important; font-size: 0.92rem !important; padding: 8px 12px !important;
-    border-radius: 6px !important; transition: all 0.15s;
+.main-tabs [data-baseweb="tab"] {
+    border-radius: 0 !important; padding: 14px 28px !important;
+    font-size: 1rem !important; font-weight: 500 !important; color: #64748b !important;
+    background: transparent !important; border: none !important;
+    border-bottom: 3px solid transparent !important;
 }
-section[data-testid="stSidebar"] [data-testid="stSidebarNav"] > div:hover > div > label {
-    background: rgba(255,255,255,0.06) !important; color: #f1f5f9 !important;
-}
-section[data-testid="stSidebar"] [data-baseweb="radio"] [data-baseweb="radio"] ~ span {
-    color: #f1f5f9 !important;
+.main-tabs [aria-selected="true"] {
+    color: #0f172a !important; border-bottom: 3px solid #3b82f6 !important;
+    font-weight: 600 !important; background: #fff !important;
 }
 
-/* ── 页面顶栏 ── */
-.page-header {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 1.6rem 2rem;
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-.page-header .accent {
-    width: 4px; height: 48px; background: #3b82f6; border-radius: 2px; flex-shrink: 0;
-}
-.page-header h1 {
-    margin: 0; font-size: 1.55rem; font-weight: 700; color: #0f172a;
-    letter-spacing: -0.02em; line-height: 1.2;
-}
-.page-header p { margin: 0.25rem 0 0 0; font-size: 0.88rem; color: #94a3b8; }
-
-/* ── Tab 栏 ── */
+/* ── 子 Tab 栏 ── */
 .stTabs [data-baseweb="tab-list"] {
     gap: 0 !important; background: transparent !important; border-bottom: 1px solid #e2e8f0 !important;
 }
 .stTabs [data-baseweb="tab"] {
-    border-radius: 0 !important; padding: 12px 20px !important;
+    border-radius: 0 !important; padding: 10px 18px !important;
     font-size: 0.92rem !important; font-weight: 500 !important; color: #64748b !important;
     background: transparent !important; border: none !important;
-    border-bottom: 2px solid transparent !important; transition: color 0.15s;
+    border-bottom: 2px solid transparent !important;
 }
-.stTabs [data-baseweb="tab"]:hover { color: #334155 !important; }
 .stTabs [aria-selected="true"] {
     color: #0f172a !important; border-bottom: 2px solid #3b82f6 !important;
     font-weight: 600 !important; background: transparent !important;
 }
-.stTabs [data-baseweb="tab-highlight"] { background: #3b82f6 !important; }
-.stTabs [data-baseweb="tab-border"] { background: transparent !important; }
 
-/* ── 展开器 (知识点) ── */
+/* ── 展开器 ── */
 .stExpander {
     border: 1px solid #e2e8f0 !important; border-left: 3px solid #e2e8f0 !important;
     border-radius: 8px !important; margin-bottom: 6px !important;
     background: #ffffff !important; box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
-    transition: border-color 0.15s, box-shadow 0.15s;
 }
 .stExpander:hover {
     border-left-color: #3b82f6 !important;
@@ -87,10 +61,6 @@ section[data-testid="stSidebar"] [data-baseweb="radio"] [data-baseweb="radio"] ~
     font-size: 0.98rem !important; font-weight: 500 !important; color: #1e293b !important;
     padding: 0.7rem 1rem !important;
 }
-.stExpander summary svg { color: #94a3b8 !important; }
-
-/* ── 展开器内容 ── */
-.stExpander div[data-testid="stExpander"] { padding-top: 0.5rem !important; }
 .stExpander div[data-testid="stExpander"] p {
     font-size: 0.95rem !important; line-height: 1.8 !important; color: #475569 !important;
 }
@@ -99,49 +69,38 @@ section[data-testid="stSidebar"] [data-baseweb="radio"] [data-baseweb="radio"] ~
 .sub-header {
     font-size: 0.88rem; font-weight: 600; color: #64748b;
     text-transform: uppercase; letter-spacing: 0.06em;
-    padding-bottom: 6px; margin-bottom: 12px;
-    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 6px; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0;
 }
 
-/* ── 按钮 / 资源卡片 ── */
+/* ── 按钮 ── */
 .stButton > button {
     border-radius: 8px !important; border: 1px solid #e2e8f0 !important;
     background: #ffffff !important; color: #1e293b !important;
     font-weight: 500 !important; text-align: left !important;
     padding: 0.75rem 1rem !important; box-shadow: 0 1px 2px rgba(0,0,0,0.04) !important;
-    transition: all 0.15s !important;
 }
 .stButton > button:hover {
     border-color: #3b82f6 !important; background: #f0f7ff !important;
-    box-shadow: 0 2px 8px rgba(59,130,246,0.1) !important;
 }
 
-/* ── Info 提示 ── */
 .stAlert { border-radius: 8px !important; font-size: 0.9rem !important; border-left-width: 3px !important; }
 
-/* ── 页脚 ── */
 .footer-line {
     text-align: center; padding: 1rem 0; margin-top: 2rem;
     border-top: 1px solid #e2e8f0; color: #94a3b8; font-size: 0.82rem;
 }
 
-/* ── Cusdis 评论区 ── */
-#cusdis_thread { font-family: 'Inter', system-ui, sans-serif; }
-#cusdis_thread textarea {
-    border: 1px solid #e2e8f0 !important; border-radius: 6px !important;
-    font-size: 0.92rem !important; padding: 10px !important;
+/* ── 公式区 ── */
+.formula-box {
+    background: #f1f5f9; border-left: 3px solid #3b82f6; border-radius: 6px;
+    padding: 12px 16px; margin: 8px 0; font-size: 0.93rem;
+    text-align: center; color: #0f172a; line-height: 1.8;
+    font-family: 'Inter', monospace;
 }
-#cusdis_thread button {
-    background: #3b82f6 !important; color: #fff !important; border: none !important;
-    border-radius: 6px !important; padding: 8px 20px !important; font-size: 0.9rem !important;
-    cursor: pointer !important;
-}
-#cusdis_thread button:hover { background: #2563eb !important; }
 
-/* ── st.latex 样式优化 ── */
-.stLatex { margin: 0.5rem 0 !important; }
-.stLatex > div { background: #f1f5f9 !important; border-left: 3px solid #3b82f6 !important;
-    border-radius: 6px !important; padding: 10px 16px !important; }
+/* ── Cusdis ── */
+#cusdis_thread textarea { border: 1px solid #e2e8f0 !important; border-radius: 6px !important; }
+#cusdis_thread button { background: #3b82f6 !important; color: #fff !important; border: none !important; border-radius: 6px !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -151,12 +110,17 @@ def knowledge_section(title: str, items: list[tuple[str, str, str]]):
     st.markdown(f'<div class="sub-header">{title}</div>', unsafe_allow_html=True)
     for name, desc, formula in items:
         with st.expander(name, expanded=False):
-            st.markdown(f'<div style="font-size:0.95rem; line-height:1.8; color:#475569;">{desc}</div>',
+            # 清洗描述中的内联公式 $...$ → 去掉美元符保留内容
+            clean_desc = desc.replace('`$', '`')
+            for _ in range(10):
+                if '$' in clean_desc:
+                    clean_desc = clean_desc.replace('$', '', 1).replace('$', '', 1)
+            st.markdown(f'<div style="font-size:0.95rem; line-height:1.8; color:#475569;">{clean_desc}</div>',
                         unsafe_allow_html=True)
             if formula:
                 # 清洗公式：去掉 $...$，替换 HTML 实体
-                f = formula.replace('$', '').replace('&emsp;', '\\quad').replace('&nbsp;', '\\ ')
-                st.latex(f)
+                f = formula.replace('$', '').replace('&emsp;', '    ').replace('&nbsp;', ' ')
+                st.markdown(f'<div class="formula-box">{f}</div>', unsafe_allow_html=True)
 
 
 # ── Cusdis 评论 ──
@@ -474,55 +438,27 @@ RESOURCES = {
 }
 
 # ════════════════════════════════════════════════════════════════════
-#  侧边栏导航
+#  顶部导航 Tab
 # ════════════════════════════════════════════════════════════════════
 
-page = st.sidebar.radio(
-    "导航",
-    ["课程知识", "资源链接", "仿真实验室", "留言讨论"],
-    label_visibility="collapsed",
-)
+main_tabs = st.tabs(["课程知识", "资源链接", "仿真实验室", "留言讨论"])
 
-# ════════════════════════════════════════════════════════════════════
-#  课程知识
-# ════════════════════════════════════════════════════════════════════
-
-if page == "课程知识":
-    st.markdown("""
-    <div class="page-header">
-        <div class="accent"></div>
-        <div>
-            <h1>课程知识</h1>
-            <p>电气工程核心课程 / 47 个知识点 / 生活化类比 + 关键公式</p>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    tab_names = ["电路理论", "工程数学", "模拟电子技术", "数字电子技术", "自动控制原理"]
-    tabs = st.tabs(tab_names)
-
-    with tabs[0]:
+# ── 课程知识 ──
+with main_tabs[0]:
+    sub_tabs = st.tabs(["电路理论", "工程数学", "模拟电子技术", "数字电子技术", "自动控制原理"])
+    with sub_tabs[0]:
         knowledge_section("电路理论", CIRCUIT_THEORY)
-    with tabs[1]:
+    with sub_tabs[1]:
         knowledge_section("工程数学", ENGINEERING_MATH)
-    with tabs[2]:
+    with sub_tabs[2]:
         knowledge_section("模拟电子技术", ANALOG_ELECTRONICS)
-    with tabs[3]:
+    with sub_tabs[3]:
         knowledge_section("数字电子技术", DIGITAL_ELECTRONICS)
-    with tabs[4]:
+    with sub_tabs[4]:
         knowledge_section("自动控制原理", CONTROL_THEORY)
 
-elif page == "资源链接":
-    st.markdown("""
-    <div class="page-header">
-        <div class="accent"></div>
-        <div>
-            <h1>资源链接</h1>
-            <p>精选视频课程与在线教材 / 点击直达</p>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
+# ── 资源链接 ──
+with main_tabs[1]:
     for group, cards in RESOURCES.items():
         st.markdown(f"**{group}**")
         cols = st.columns(2)
@@ -531,48 +467,24 @@ elif page == "资源链接":
                 st.link_button(f"**{title}**", url, help=desc, use_container_width=True)
                 st.caption(f"{desc} / {tag}")
 
-# ════════════════════════════════════════════════════════════════════
-#  仿真实验室
-# ════════════════════════════════════════════════════════════════════
-
-elif page == "仿真实验室":
-    st.markdown("""
-    <div class="page-header">
-        <div class="accent"></div>
-        <div>
-            <h1>仿真实验室</h1>
-            <p>在线交互式仿真 / 电路模拟 + 复数可视化</p>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    sim_tab = st.tabs(["CircuitJS 电路模拟器", "GeoGebra 复数可视化"])
-
-    with sim_tab[0]:
-        st.info("可点击 文件 - 打开示例 浏览预置电路，或自行搭建电路进行仿真。支持电压/电流波形实时显示。")
+# ── 仿真实验室 ──
+with main_tabs[2]:
+    sim_sub = st.tabs(["CircuitJS 电路模拟器", "GeoGebra 复数可视化"])
+    with sim_sub[0]:
+        st.info("可点击 文件 - 打开示例 浏览预置电路，或自行搭建电路进行仿真。")
         st.components.v1.iframe(
             "https://lushprojects.com/circuitjs/circuitjs.html?lang=zh",
             height=550, scrolling=True,
         )
-
-    with sim_tab[1]:
+    with sim_sub[1]:
         st.info("拖动复平面上的点，观察复数乘法的几何意义——模相乘、角度相加。")
         st.components.v1.iframe(
             "https://www.geogebra.org/classic/tz5x6vga?embed",
             height=550, scrolling=True,
         )
 
-elif page == "留言讨论":
-    st.markdown("""
-    <div class="page-header">
-        <div class="accent"></div>
-        <div>
-            <h1>留言讨论</h1>
-            <p>有任何问题或建议，欢迎在这里留言交流</p>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
+# ── 留言讨论 ──
+with main_tabs[3]:
     show_comments("discussion", "留言讨论")
 
 # ── 页脚 ──
